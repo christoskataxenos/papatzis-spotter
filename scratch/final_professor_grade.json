@@ -1,0 +1,259 @@
+{
+  "final_score": 47.8,
+  "confidence_score": 0.9,
+  "pillars": [
+    {
+      "pillar": "\u0394\u03bf\u03bc\u03b9\u03ba\u03cc Overkill",
+      "score": 0.0,
+      "findings": []
+    },
+    {
+      "pillar": "\u03a3\u03c4\u03b1\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03ae \u03a6\u03bb\u03c5\u03b1\u03c1\u03af\u03b1",
+      "score": 92.8,
+      "findings": [
+        {
+          "type": "statistical.hadouken_nesting",
+          "file": "temp_test.py",
+          "line": 1,
+          "severity": 2.0,
+          "confidence": 0.8,
+          "message": "Hadouken Code Detected: \u0392\u03ac\u03b8\u03bf\u03c2 \u03b5\u03bc\u03c6\u03ce\u03bb\u03b5\u03c5\u03c3\u03b7\u03c2 4.",
+          "human_alternative": "\u039a\u03ac\u03bd\u03c4\u03b5 refactor \u03c3\u03b5 \u03bc\u03b9\u03ba\u03c1\u03cc\u03c4\u03b5\u03c1\u03b5\u03c2 \u03c3\u03c5\u03bd\u03b1\u03c1\u03c4\u03ae\u03c3\u03b5\u03b9\u03c2.",
+          "rationale": "Deeply nested code is hard to maintain and typical of 'unfiltered' AI output."
+        },
+        {
+          "type": "statistical.anti_pattern",
+          "file": "temp_test.py",
+          "line": 27,
+          "severity": 1.5,
+          "confidence": 0.9,
+          "message": "Anti-pattern: \u03a7\u03c1\u03ae\u03c3\u03b7 type() \u03b3\u03b9\u03b1 \u03ad\u03bb\u03b5\u03b3\u03c7\u03bf \u03c4\u03cd\u03c0\u03bf\u03c5.",
+          "human_alternative": "\u03a7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7\u03bd isinstance().",
+          "rationale": "Common AI anti-pattern; less robust than isinstance()."
+        },
+        {
+          "type": "statistical.anti_pattern",
+          "file": "temp_test.py",
+          "line": 28,
+          "severity": 1.5,
+          "confidence": 0.9,
+          "message": "Anti-pattern: \u03a7\u03c1\u03ae\u03c3\u03b7 type() \u03b3\u03b9\u03b1 \u03ad\u03bb\u03b5\u03b3\u03c7\u03bf \u03c4\u03cd\u03c0\u03bf\u03c5.",
+          "human_alternative": "\u03a7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7\u03bd isinstance().",
+          "rationale": "Common AI anti-pattern; less robust than isinstance()."
+        },
+        {
+          "type": "statistical.anti_pattern",
+          "file": "temp_test.py",
+          "line": 34,
+          "severity": 1.5,
+          "confidence": 0.9,
+          "message": "Anti-pattern: \u03a7\u03c1\u03ae\u03c3\u03b7 type() \u03b3\u03b9\u03b1 \u03ad\u03bb\u03b5\u03b3\u03c7\u03bf \u03c4\u03cd\u03c0\u03bf\u03c5.",
+          "human_alternative": "\u03a7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7\u03bd isinstance().",
+          "rationale": "Common AI anti-pattern; less robust than isinstance()."
+        },
+        {
+          "type": "statistical.fake_metric",
+          "file": "temp_test.py",
+          "line": 23,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "Fake AI Metric Detected",
+          "human_alternative": "\u0391\u03c6\u03b1\u03b9\u03c1\u03ad\u03c3\u03c4\u03b5 \u03c4\u03b1 \u03c4\u03b5\u03c7\u03bd\u03b7\u03c4\u03ac metrics \u03b1\u03bd \u03b4\u03b5\u03bd \u03c5\u03c0\u03ac\u03c1\u03c7\u03b5\u03b9 \u03c0\u03c1\u03b1\u03b3\u03bc\u03b1\u03c4\u03b9\u03ba\u03cc ML.",
+          "rationale": "AI-generated slop often includes static 'confidence' placeholders."
+        },
+        {
+          "type": "statistical.stupid_logic",
+          "file": "temp_test.py",
+          "line": 1,
+          "severity": 3.0,
+          "confidence": 0.8,
+          "message": "\u0391\u03bb\u03b3\u03bf\u03c1\u03b9\u03b8\u03bc\u03b9\u03ba\u03ae \u03a6\u03bb\u03c5\u03b1\u03c1\u03af\u03b1: String manipulation \u03b3\u03b9\u03b1 \u03bc\u03b1\u03b8\u03b7\u03bc\u03b1\u03c4\u03b9\u03ba\u03ad\u03c2 \u03c0\u03c1\u03ac\u03be\u03b5\u03b9\u03c2.",
+          "human_alternative": "\u03a7\u03c1\u03b7\u03c3\u03b9\u03bc\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03b1\u03c0\u03b5\u03c5\u03b8\u03b5\u03af\u03b1\u03c2 \u03c4\u03b5\u03bb\u03b5\u03c3\u03c4\u03ad\u03c2 (\u03c0.\u03c7. %).",
+          "rationale": "Extremely inefficient logic, typical of context-lost AI."
+        }
+      ]
+    },
+    {
+      "pillar": "\u0392\u03b1\u03c6\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc Slop",
+      "score": 99.8,
+      "findings": [
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 6,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'EnterpriseParityEvaluationEngine'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 11,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: '_synergistic_modulo_operation'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.generic",
+          "file": "temp_test.py",
+          "line": 11,
+          "severity": 0.8,
+          "confidence": 1.0,
+          "message": "Generic \u03cc\u03bd\u03bf\u03bc\u03b1: 'value'",
+          "human_alternative": "\u03a0\u03b9\u03bf \u03c0\u03b5\u03c1\u03b9\u03b3\u03c1\u03b1\u03c6\u03b9\u03ba\u03cc \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Low-effort AI naming."
+        },
+        {
+          "type": "naming.generic",
+          "file": "temp_test.py",
+          "line": 12,
+          "severity": 0.8,
+          "confidence": 1.0,
+          "message": "Generic \u03cc\u03bd\u03bf\u03bc\u03b1: 'value'",
+          "human_alternative": "\u03a0\u03b9\u03bf \u03c0\u03b5\u03c1\u03b9\u03b3\u03c1\u03b1\u03c6\u03b9\u03ba\u03cc \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Low-effort AI naming."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 19,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 32,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 33,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 40,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 42,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 44,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 46,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: '_synergistic_modulo_operation'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 48,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 50,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 52,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 53,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 56,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test.py",
+          "line": 57,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Architecture Slop: 'response_payload'",
+          "human_alternative": "\u0391\u03c0\u03bb\u03bf\u03c0\u03bf\u03b9\u03ae\u03c3\u03c4\u03b5 \u03c4\u03b7 \u03b4\u03bf\u03bc\u03ae \u03ba\u03b1\u03b9 \u03c4\u03bf \u03cc\u03bd\u03bf\u03bc\u03b1.",
+          "rationale": "Pretentious naming often hides AI-generated boilerplate."
+        }
+      ]
+    },
+    {
+      "pillar": "GPT-Style \u03a0\u03b1\u03c0\u03b1\u03c4\u03b6\u03b9\u03bb\u03af\u03ba\u03b9",
+      "score": 0.0,
+      "findings": []
+    }
+  ],
+  "interpretation": "\u0391\u03c1\u03c7\u03b9\u03c0\u03b1\u03c0\u03b1\u03c4\u03b6\u03ae\u03c2 / Slop Master"
+}

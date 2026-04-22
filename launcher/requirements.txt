@@ -1,0 +1,6 @@
+PyQt5
+psutil
+pyinstaller
+tree-sitter
+tree-sitter-language-pack
+pydantic

@@ -1,0 +1,151 @@
+{
+  "final_score": 93.4,
+  "confidence_score": 0.9,
+  "pillars": [
+    {
+      "pillar": "\u0394\u03bf\u03bc\u03b9\u03ba\u03cc Overkill",
+      "score": 83.5,
+      "findings": [
+        {
+          "type": "suspicion.architecture_overkill",
+          "file": "temp_test_slop.py",
+          "line": 1,
+          "severity": 4.0,
+          "confidence": 1.0,
+          "message": "Architecture Overkill: Logic 10/Boilerplate 93.",
+          "human_alternative": "Simplify the structure.",
+          "rationale": "Severe structural slop."
+        }
+      ]
+    },
+    {
+      "pillar": "\u03a3\u03c4\u03b1\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03ae \u03a6\u03bb\u03c5\u03b1\u03c1\u03af\u03b1",
+      "score": 93.3,
+      "findings": [
+        {
+          "type": "statistical.stupid_logic",
+          "file": "temp_test_slop.py",
+          "line": 1,
+          "severity": 3.5,
+          "confidence": 1.0,
+          "message": "Anti-pattern Logic Detected",
+          "human_alternative": "Use modulo.",
+          "rationale": "AI logic smell."
+        },
+        {
+          "type": "statistical.hadouken_nesting",
+          "file": "temp_test_slop.py",
+          "line": 1,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "Hadouken Code: \u0392\u03ac\u03b8\u03bf\u03c2 4.",
+          "human_alternative": "Flatten logic.",
+          "rationale": "AI nesting."
+        }
+      ]
+    },
+    {
+      "pillar": "\u0392\u03b1\u03c6\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc Slop",
+      "score": 96.6,
+      "findings": [
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test_slop.py",
+          "line": 5,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Slop: 'EnterpriseParityEvaluationEngine'",
+          "human_alternative": "Simplify naming.",
+          "rationale": "Pretentious naming."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test_slop.py",
+          "line": 8,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Slop: 'parity_cache'",
+          "human_alternative": "Simplify naming.",
+          "rationale": "Pretentious naming."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test_slop.py",
+          "line": 10,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Slop: '_synergistic_modulo_operation'",
+          "human_alternative": "Simplify naming.",
+          "rationale": "Pretentious naming."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test_slop.py",
+          "line": 17,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Slop: 'evaluate_parity_status'",
+          "human_alternative": "Simplify naming.",
+          "rationale": "Pretentious naming."
+        },
+        {
+          "type": "naming.enterprise_slop",
+          "file": "temp_test_slop.py",
+          "line": 19,
+          "severity": 1.5,
+          "confidence": 1.0,
+          "message": "Enterprise Slop: 'response_payload'",
+          "human_alternative": "Simplify naming.",
+          "rationale": "Pretentious naming."
+        }
+      ]
+    },
+    {
+      "pillar": "GPT-Style \u03a0\u03b1\u03c0\u03b1\u03c4\u03b6\u03b9\u03bb\u03af\u03ba\u03b9",
+      "score": 98.9,
+      "findings": [
+        {
+          "type": "comments.ai_style",
+          "file": "temp_test_slop.py",
+          "line": 10,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "GPT Buzzword: 'synergistic'",
+          "human_alternative": "Be direct.",
+          "rationale": "AI-style framing."
+        },
+        {
+          "type": "comments.ai_style",
+          "file": "temp_test_slop.py",
+          "line": 7,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "GPT Buzzword: 'initialization_timestamp'",
+          "human_alternative": "Be direct.",
+          "rationale": "AI-style framing."
+        },
+        {
+          "type": "comments.ai_style",
+          "file": "temp_test_slop.py",
+          "line": 5,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "GPT Buzzword: 'parity'",
+          "human_alternative": "Be direct.",
+          "rationale": "AI-style framing."
+        },
+        {
+          "type": "comments.ai_style",
+          "file": "temp_test_slop.py",
+          "line": 5,
+          "severity": 2.5,
+          "confidence": 1.0,
+          "message": "GPT Buzzword: 'evaluation'",
+          "human_alternative": "Be direct.",
+          "rationale": "AI-style framing."
+        }
+      ]
+    }
+  ],
+  "interpretation": "Professor Marazakis Nightmare (Slop Master)"
+}

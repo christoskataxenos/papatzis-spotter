@@ -1,0 +1,38 @@
+{
+  "final_score": 16.7,
+  "confidence_score": 0.9,
+  "pillars": [
+    {
+      "pillar": "\u0394\u03bf\u03bc\u03b9\u03ba\u03cc Overkill",
+      "score": 83.5,
+      "findings": [
+        {
+          "type": "suspicion.architecture_overkill",
+          "file": "mid_slop.py",
+          "line": 1,
+          "severity": 4.0,
+          "confidence": 1.0,
+          "message": "Architecture Overkill: Logic 0/Boilerplate 10.",
+          "human_alternative": "Simplify the structure.",
+          "rationale": "Severe structural slop."
+        }
+      ]
+    },
+    {
+      "pillar": "\u03a3\u03c4\u03b1\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03ae \u03a6\u03bb\u03c5\u03b1\u03c1\u03af\u03b1",
+      "score": 0.0,
+      "findings": []
+    },
+    {
+      "pillar": "\u0392\u03b1\u03c6\u03c4\u03b9\u03c3\u03c4\u03b9\u03ba\u03cc Slop",
+      "score": 0.0,
+      "findings": []
+    },
+    {
+      "pillar": "GPT-Style \u03a0\u03b1\u03c0\u03b1\u03c4\u03b6\u03b9\u03bb\u03af\u03ba\u03b9",
+      "score": 0.0,
+      "findings": []
+    }
+  ],
+  "interpretation": "\u0395\u03c1\u03b1\u03c3\u03b9\u03c4\u03ad\u03c7\u03bd\u03b7\u03c2 \u03a0\u03b1\u03c0\u03b1\u03c4\u03b6\u03ae\u03c2"
+}
