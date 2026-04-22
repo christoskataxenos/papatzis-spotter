@@ -16,11 +16,23 @@ from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor
 
 # Υπολογισμός του root φακέλου για το project
 if getattr(sys, 'frozen', False):
-    exe_dir = os.path.dirname(sys.executable)
-    project_root = exe_dir if os.path.exists(os.path.join(exe_dir, "analyzer")) else os.path.abspath(os.path.join(exe_dir, ".."))
+    # Όταν τρέχουμε ως EXE, ο sys.executable είναι η διαδρομή του .exe
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+    # Αν το EXE είναι στο root, ο analyzer φάκελος υπάρχει εκεί
+    if os.path.exists(os.path.join(exe_dir, "analyzer")):
+        project_root = exe_dir
+    else:
+        # Αν το EXE είναι μέσα στο launcher/dist, πηγαίνουμε δύο επίπεδα πάνω
+        project_root = os.path.abspath(os.path.join(exe_dir, "..", ".."))
+        if not os.path.exists(os.path.join(project_root, "analyzer")):
+            # Fallback αν είναι απλά στο launcher/
+            project_root = os.path.abspath(os.path.join(exe_dir, ".."))
 else:
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    # Κανονική εκτέλεση από Python
+    launcher_internal_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(launcher_internal_dir, ".."))
 
+launcher_dir = os.path.join(project_root, "launcher")
 analyzer_dir = os.path.join(project_root, "analyzer")
 venv_dir = os.path.join(analyzer_dir, "venv")
 python_exec = os.path.join(venv_dir, "Scripts", "python.exe") if os.name == "nt" else os.path.join(venv_dir, "bin", "python")
@@ -53,7 +65,12 @@ class PapatzisLauncher(QMainWindow):
         self.setup_tray()
         
         # Ορισμός εικονιδίου
-        icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+        if getattr(sys, 'frozen', False):
+            # Στο frozen EXE, το icon.ico είναι συνήθως στο root του temp dir (_MEI)
+            icon_path = os.path.join(sys._MEIPASS, "icon.ico") if hasattr(sys, '_MEIPASS') else "icon.ico"
+        else:
+            icon_path = os.path.join(launcher_dir, "icon.ico")
+            
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         
@@ -316,7 +333,11 @@ class PapatzisLauncher(QMainWindow):
 
     def setup_tray(self):
         self.tray = QSystemTrayIcon(self)
-        icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, "icon.ico") if hasattr(sys, '_MEIPASS') else "icon.ico"
+        else:
+            icon_path = os.path.join(launcher_dir, "icon.ico")
+            
         if os.path.exists(icon_path):
             self.tray.setIcon(QIcon(icon_path))
         else:
@@ -582,11 +603,12 @@ fi
         self.tabs.setCurrentIndex(2) # Build Logs Tab
         self.append_log("build", "<b>[BUILD] Έναρξη δημιουργίας Papatzis Spotter...</b>\n")
         
-        spec_path = os.path.join(os.path.dirname(__file__), "PapatzisSpotter.spec")
+        # Χρησιμοποιούμε την απόλυτη διαδρομή από τον launcher_dir του project
+        spec_path = os.path.join(launcher_dir, "PapatzisSpotter.spec")
         
         p = QProcess(self)
-        # Χρησιμοποιούμε το venv του launcher που έχει το pyinstaller
-        p.setWorkingDirectory(os.path.dirname(__file__))
+        # Χρησιμοποιούμε τον πραγματικό φάκελο του launcher
+        p.setWorkingDirectory(launcher_dir)
         p.setProcessChannelMode(QProcess.MergedChannels)
         p.readyRead.connect(lambda: self.stream_logs(p, "build"))
         
@@ -597,7 +619,7 @@ fi
             return
             
         args = ["-m", "PyInstaller", spec_path, "--noconfirm", "--clean"]
-        self.append_log("build", f"[SYSTEM] Executing: {launcher_venv_py} {' '.join(args)} in {os.path.dirname(__file__)}\n")
+        self.append_log("build", f"[SYSTEM] Executing: {launcher_venv_py} {' '.join(args)} in {launcher_dir}\n")
         p.start(launcher_venv_py, args)
 
         self.running_procs["build_spotter"] = p
@@ -708,7 +730,7 @@ fi
             return
 
         # Έλεγχος αν όντως δημιουργήθηκε το αρχείο
-        dist_path = os.path.join(project_root, "dist") if name == "Engine" else os.path.join(os.path.dirname(__file__), "dist")
+        dist_path = os.path.join(project_root, "dist") if name == "Engine" else os.path.join(launcher_dir, "dist")
         exe_name = "PapatzisEngine.exe" if name == "Engine" else "PapatzisSpotter.exe"
         exe_path = os.path.join(dist_path, exe_name)
 
