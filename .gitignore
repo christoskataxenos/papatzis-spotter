@@ -57,6 +57,7 @@ my-skills/
 *.exe
 AiSlop-Portable/
 .env
-*.spec
+# *.spec (Unignored because launcher needs them for automated builds)
+!*.spec
 # Keep icons
 !launcher/icon.ico
