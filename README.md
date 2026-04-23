@@ -1,8 +1,11 @@
 # 🛡️ Papatzis Spotter (Παπατζής Spotter)
+<div align="center">
+  <a href="https://github.com/christoskataxenos/papatzis-spotter/releases/tag/beta">
+    <img src="https://img.shields.io/github/v/release/christoskataxenos/papatzis-spotter?color=2F6FFF&label=Download%20Beta%20(Portable%20%26%20Setup)&style=for-the-badge&logo=github" alt="Download Beta">
+  </a>
+</div>
 
-> [!IMPORTANT]
-> **🚀 Beta Release 1.1.0 is OUT! / Η νέα Beta έκδοση είναι έτοιμη!**
-> Download the **Portable EXE** or the **Full MSI Setup** here: [Latest Release](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/beta)
+<br>
 
 
 **Papatzis Spotter** is a comprehensive **AI Slop-Prevention Ecosystem** designed to detect and block low-quality, prompt-engineered code. It combines deep AST analysis, statistical heuristics, and global AI agent enforcement to preserve human craftsmanship in the age of LLMs.
