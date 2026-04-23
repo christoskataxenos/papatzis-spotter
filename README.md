@@ -1,5 +1,10 @@
 # 🛡️ Papatzis Spotter (Παπατζής Spotter)
 
+> [!IMPORTANT]
+> **🚀 Beta Release 1.1.0 is OUT! / Η νέα Beta έκδοση είναι έτοιμη!**
+> Download the portable Windows executables here: [Latest Release](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/beta)
+
+
 **Papatzis Spotter** is a comprehensive **AI Slop-Prevention Ecosystem** designed to detect and block low-quality, prompt-engineered code. It combines deep AST analysis, statistical heuristics, and global AI agent enforcement to preserve human craftsmanship in the age of LLMs.
 
 Το **Papatzis Spotter** είναι ένα ολοκληρωμένο **οικοσύστημα προστασίας από το AI Slop**, σχεδιασμένο να εντοπίζει και να μπλοκάρει κώδικα χαμηλής ποιότητας. Συνδυάζει βαθιά AST ανάλυση, στατιστικά heuristics και επιβολή κανόνων στους AI agents για τη διατήρηση της ανθρώπινης ποιότητας στην εποχή των LLMs.
