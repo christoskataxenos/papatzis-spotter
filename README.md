@@ -1,11 +1,11 @@
 # Papatzis Spotter: The AI-Slop Generation Finder
 
-![Version](https://img.shields.io/badge/version-beta-orange)
+![Version](https://img.shields.io/badge/version-stable-green)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-green)
 ![Platform](https://img.shields.io/badge/platform-windows%20%7C%20linux-lightgrey)
 
-[🇬🇷 Ελληνικά](#ελληνικά) | [🇬🇧 English](#english) | [🚀 Download Beta](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/beta)
+[🇬🇷 Ελληνικά](#ελληνικά) | [🇬🇧 English](#english) | [🚀 Download Stable](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release)
 
 ---
 
@@ -52,9 +52,9 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 For a quick start, simply run:
 - **`run_orchestrator.bat`**
 
-#### 📦 Download Beta
-You can find the latest portable release here:
-[**Papatzis Spotter Beta Release**](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/beta)
+#### 📦 Download Stable
+You can find the latest stable release here:
+[**Papatzis Spotter Stable Release**](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release)
 
 ---
 
