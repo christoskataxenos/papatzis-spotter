@@ -13,9 +13,10 @@ interface RadarScoreProps {
     score: number;
   }>;
   lang?: string;
+  hideLabels?: boolean;
 }
 
-export const RadarScore: React.FC<RadarScoreProps> = ({ pillars }) => {
+export const RadarScore: React.FC<RadarScoreProps> = ({ pillars, hideLabels = true }) => {
   /* Προετοιμασία δεδομένων για το Radar Chart */
   const data = pillars.map(p => ({
     subject: p.pillar,
@@ -25,25 +26,25 @@ export const RadarScore: React.FC<RadarScoreProps> = ({ pillars }) => {
 
   return (
     <div className="w-full h-full relative group">
-      {/* Background glow effects */}
-      <div className="absolute inset-0 bg-accent-primary/[0.04] blur-[40px] rounded-full group-hover:bg-accent-primary/[0.08] transition-all duration-[2000ms]" />
       
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart 
           cx="50%" 
           cy="50%" 
-          outerRadius="50%" 
+          outerRadius="80%" 
           data={data}
-          margin={{ top: 10, right: 60, bottom: 10, left: 60 }}
+          margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
         >
           <PolarGrid 
             stroke="rgba(255,255,255,0.06)" 
             strokeDasharray="3 3"
           />
-          <PolarAngleAxis 
-            dataKey="subject" 
-            tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}
-          />
+          {!hideLabels && (
+            <PolarAngleAxis 
+              dataKey="subject" 
+              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}
+            />
+          )}
           <Radar
             name="Slop Analysis"
             dataKey="A"

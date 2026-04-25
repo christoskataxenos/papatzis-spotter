@@ -13,9 +13,9 @@ import {
   HelpCircle,
   Settings as SettingsIcon,
   Search,
-  Shield,
   Globe
 } from 'lucide-react';
+
 
 /* ─── Sidebar Navigation Item ─── */
 interface SidebarItemProps {
@@ -42,14 +42,14 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
     <div className={`
       p-2.5 rounded-xl transition-all duration-300
       ${active 
-        ? 'bg-accent-primary/10 shadow-glow' 
+        ? 'bg-accent-primary/10' 
         : 'group-hover:bg-white/[0.04]'
       }
     `}>
       <Icon 
         size={22} 
         strokeWidth={active ? 2.2 : 1.8}
-        className={`transition-all duration-300 ${active ? 'drop-shadow-[0_0_10px_rgba(59,125,255,0.4)]' : ''}`} 
+        className={`transition-all duration-300`} 
       />
     </div>
 
@@ -63,7 +63,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
     <div className={`
       absolute right-0 w-[3px] rounded-l-full transition-all duration-500 ease-out-expo
       ${active 
-        ? 'h-10 bg-accent-primary shadow-[0_0_12px_rgba(59,125,255,0.6)]' 
+        ? 'h-10 bg-accent-primary' 
         : 'h-0 bg-transparent'
       }
     `} />
@@ -76,32 +76,31 @@ const WizardView: React.FC<{ lang: Language }> = ({ lang }) => {
   const t = translations[lang];
   
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
+    <div className="flex-1 flex items-center justify-center p-8 h-full">
       <div className="max-w-2xl text-center space-y-10 anim-scale-in">
-        <div className="flex justify-center">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-accent-primary/15 blur-[60px] rounded-full group-hover:bg-accent-primary/25 transition-all duration-700" />
-            <div className="relative p-8 bg-surface-elevated rounded-[2rem] border border-white/[0.06] shadow-strong transform group-hover:scale-[1.03] transition-all duration-700 ease-out-expo">
-              <Shield size={72} className="text-accent-primary anim-float" strokeWidth={1.5} />
-            </div>
-          </div>
+        <div className="flex justify-center mb-6 anim-scale-in">
+          <img src="/logo.png" alt="Papatzis Spotter" className="w-32 h-32" />
         </div>
-
-        <div className="space-y-5 relative anim-slide-up anim-delay-200">
-          <h1 className="text-6xl md:text-7xl font-black tracking-[-0.04em] text-white leading-[0.95]">
-            Papatzis <span className="bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">Spotter</span>
+        
+        <div className="space-y-4 relative anim-slide-up anim-delay-200">
+          <h1 className="text-6xl md:text-7xl font-black tracking-tight text-white leading-tight flex flex-col md:flex-row items-center justify-center md:space-x-4">
+            <span>PAPATZIS</span>
+            <span className="px-3 py-1 bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xl font-mono tracking-[0.2em] rounded-lg uppercase">Spotter</span>
           </h1>
-          <p className="text-text-secondary text-lg md:text-xl leading-relaxed max-w-lg mx-auto font-medium">
-            {t.tagline}
-          </p>
+          <div className="flex flex-col items-center space-y-2">
+            <p className="text-text-secondary text-sm md:text-base max-w-md font-medium leading-relaxed">
+              {t.tagline}
+            </p>
+            <div className="h-px w-12 bg-accent-primary/20" />
+            <span className="text-accent-primary/50 text-[10px] uppercase font-black tracking-[0.3em]">v1.4.0 — Diagnostic Engine</span>
+          </div>
         </div>
 
         <div className="pt-2 anim-slide-up anim-delay-400">
           <button 
             onClick={() => setView('analyzer')}
-            className="group relative px-12 py-5 bg-accent-primary text-bg rounded-2xl font-black text-base overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-xl shadow-accent-primary/25 hover:shadow-accent-primary/40"
+            className="group relative px-12 py-5 bg-accent-primary text-bg rounded-2xl font-black text-base transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-xl shadow-accent-primary/20"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out" />
             <span className="relative uppercase tracking-[0.2em] text-sm">{t.startNow}</span>
           </button>
           <p className="mt-4 text-text-secondary text-xs tracking-wider opacity-80">
@@ -165,19 +164,19 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-bg text-text-primary font-sans antialiased overflow-hidden">
+    <div className="flex h-screen bg-bg text-text-primary font-sans antialiased overflow-hidden border border-white/[0.04] bg-noise">
       <ToastContainer />
       
       {/* ═══ Sidebar ═══ */}
-      <nav className="w-[76px] border-r border-white/[0.04] flex flex-col items-center py-6 bg-surface/40 backdrop-blur-xl shrink-0 z-50 relative">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-accent-primary/[0.03] to-transparent pointer-events-none" />
+      <nav className="w-[76px] border-r border-white/[0.04] flex flex-col items-center py-6 bg-surface shrink-0 z-50 relative">
         
+        {/* PS Logo — Integrated Image */}
         <div 
-          className="w-11 h-11 bg-gradient-to-br from-accent-primary via-accent-primary to-accent-secondary rounded-[14px] flex items-center justify-center shadow-lg shadow-accent-primary/15 cursor-pointer hover:shadow-accent-primary/30 transition-all duration-500 hover:scale-[1.05] mb-8 relative z-10"
+          className="w-12 h-12 bg-surface border border-white/[0.04] rounded-xl flex items-center justify-center shadow-2xl cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:border-accent-primary/30 mb-8 relative z-10 group overflow-hidden"
           onClick={() => setView('wizard')}
           title={`Papatzis Spotter — ${t.home}`}
         >
-          <span className="font-black italic text-bg text-lg tracking-tight select-none">PS</span>
+          <img src="/logo.png" alt="PS" className="w-9 h-9 object-contain" />
         </div>
 
         <div className="flex-1 flex flex-col space-y-1 w-full relative z-10">
@@ -236,12 +235,7 @@ function App() {
 
       {/* ═══ Main Content ═══ */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-primary/[0.02] rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-secondary/[0.015] rounded-full blur-[100px]" />
-        </div>
-
-        <div className="flex-1 relative z-10 overflow-y-auto">
+        <div className="flex-1 relative z-10 overflow-y-auto h-full flex flex-col">
           {renderView()}
         </div>
       </div>

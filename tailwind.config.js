@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         bg: 'var(--bg)',
-        'bg-warm': 'var(--bg-warm)',
+        'bg-sunken': 'var(--bg-sunken)',
         surface: 'var(--surface)',
         'surface-elevated': 'var(--surface-elevated)',
         'surface-hover': 'var(--surface-hover)',
@@ -32,9 +32,6 @@ export default {
         'soft': 'var(--shadow-soft)',
         'strong': 'var(--shadow-strong)',
         'inset': 'var(--shadow-inset)',
-        'glow': 'var(--glow-primary)',
-        'glow-danger': 'var(--glow-danger)',
-        'glow-success': 'var(--glow-success)',
       },
       fontFamily: {
         'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],

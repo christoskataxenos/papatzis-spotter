@@ -54,7 +54,7 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         
         const initialResults: AuditResult[] = filePaths.map(p => ({
           path: p,
-          name: p.split('/').pop() || p,
+          name: p.split(/[/\\]/).pop() || p,
           result: null,
           status: 'pending'
         }));
@@ -66,13 +66,27 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           
           try {
             const content = await readTextFile(initialResults[i].path);
-            const lang = initialResults[i].path.endsWith('.py') ? 'python' : 'c';
+            const lang = initialResults[i].path.toLowerCase().endsWith('.py') ? 'python' : 'c';
             
-            const rawResult: string = await invoke('analyze_code', { code: content, language: lang });
+            // Get settings from localStorage (match Analyzer.tsx)
+            const sensitivity = localStorage.getItem('slop_sensitivity') || '50';
+            const experimental = localStorage.getItem('slop_experimental') === 'true';
+            const humanity_shield = localStorage.getItem('slop_humanity_shield') !== 'false';
+
+            const rawResult: string = await invoke('analyze_code', { 
+              code: content, 
+              language: lang,
+              settings: {
+                sensitivity: parseInt(sensitivity),
+                experimental,
+                humanity_shield
+              }
+            });
             const analysis = JSON.parse(rawResult);
             
             setResults(prev => prev.map((r, idx) => i === idx ? { ...r, status: 'done', result: analysis } : r));
           } catch (err) {
+            console.error(`Audit failed for ${initialResults[i].path}:`, err);
             setResults(prev => prev.map((r, idx) => i === idx ? { ...r, status: 'error', error: String(err) } : r));
           }
         }
@@ -102,7 +116,6 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       
       {/* ═══ Header ═══ */}
       <section className="flex flex-col items-center text-center space-y-6 py-12 bg-surface rounded-[2rem] border border-white/[0.04] relative overflow-hidden anim-scale-in">
-        <div className="absolute inset-0 bg-gradient-to-b from-accent-primary/[0.03] to-transparent" />
         <div className="absolute inset-0 bg-noise" />
         
         <div className="p-4 bg-accent-primary/[0.08] rounded-2xl border border-accent-primary/[0.12] relative z-10">

@@ -638,13 +638,18 @@ fi
         p.setProcessChannelMode(QProcess.MergedChannels)
         p.readyRead.connect(lambda: self.stream_logs(p, "build"))
 
-        launcher_venv_py = self.get_python_base()
+        # Use the venv python if it exists, otherwise fallback to system python
+        if os.path.exists(python_exec):
+            launcher_venv_py = python_exec.strip('"').strip("'").strip()
+        else:
+            launcher_venv_py = self.get_python_base()
+
         if not launcher_venv_py:
             self.append_log("build", "[ERROR] Δεν βρέθηκε Python για το PyInstaller.\n")
             return
 
-        # Προσθήκη --clean για να καθαρίζει προηγούμενα builds
-        args = ["-m", "PyInstaller", spec_file, "--noconfirm", "--clean"]
+        # Προσθήκη --clean και αλλαγή distpath για να μην χτυπάει με το Vite dist/
+        args = ["-m", "PyInstaller", spec_file, "--noconfirm", "--clean", "--distpath", "analyzer-dist"]
         self.append_log("build", f"[SYSTEM] Executing: {launcher_venv_py} {' '.join(args)} in {project_root}\n")
         p.start(launcher_venv_py, args)
 
@@ -657,7 +662,7 @@ fi
         self.append_log("build", "<b>[RELEASE] Ο τελικός είναι ένα standalone Windows EXE...</b>\n")
 
         # Βήμα 1: Αντιγραφή του PapatzisEngine.exe στον φάκελο src-tauri/binaries
-        src_engine = os.path.join(project_root, "dist", "PapatzisEngine.exe")
+        src_engine = os.path.join(project_root, "analyzer-dist", "PapatzisEngine.exe")
         dst_engine = os.path.join(project_root, "src-tauri", "binaries", "slop-engine-x86_64-pc-windows-msvc.exe")
 
         if not os.path.exists(src_engine):
@@ -730,7 +735,7 @@ fi
             return
 
         # Έλεγχος αν όντως δημιουργήθηκε το αρχείο
-        dist_path = os.path.join(project_root, "dist") if name == "Engine" else os.path.join(launcher_dir, "dist")
+        dist_path = os.path.join(project_root, "analyzer-dist") if name == "Engine" else os.path.join(launcher_dir, "dist")
         exe_name = "PapatzisEngine.exe" if name == "Engine" else "PapatzisSpotter.exe"
         exe_path = os.path.join(dist_path, exe_name)
 
