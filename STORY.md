@@ -38,7 +38,7 @@ This project is an effort to protect **quality**, **craftsmanship**, and **human
 ### 🎯 Γιατί το Papatzis Spotter;
 Το έχτισα γιατί πιστεύω στην **Καθαρή Επιστήμη** έναντι των "μαντεψιών" της AI:
 1.  **Το Παράδοξο της AI για την AI**: Οι περισσότεροι ανιχνευτές χρησιμοποιούν AI για να βρουν AI. Ήθελα να σπάσω αυτόν τον κύκλο με στατική ανάλυση και heuristics.
-2.  **Zero API Keys / Privacy First**: Χωρίς συνδρομές και internet. Ο κώδικας μένει τοπικά.
+2.  **Zero API Keys / Privacy First**: Χωρίς συνδρομές and internet. Ο κώδικας μένει τοπικά.
 3.  **Low Hardware Footprint**: Η έξυπνη ανάλυση δεν πρέπει να απαιτεί ένα cluster από 5090ti.
 
 ### 🏛️ Η Φιλοσοφία
