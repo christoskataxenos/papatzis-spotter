@@ -7,6 +7,16 @@
     "core:default",
     "opener:default",
     "dialog:default",
+    "core:path:default",
+    "shell:default",
+    {
+      "identifier": "fs:allow-write-text-file",
+      "scope": ["**"]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "scope": ["**"]
+    },
     "fs:default"
   ]
 }

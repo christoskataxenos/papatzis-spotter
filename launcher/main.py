@@ -15,23 +15,25 @@ from PyQt5.QtCore import Qt, QProcess, QTimer, pyqtSignal, QObject
 from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor
 
 # Υπολογισμός του root φακέλου για το project
-if getattr(sys, 'frozen', False):
-    # Όταν τρέχουμε ως EXE, ο sys.executable είναι η διαδρομή του .exe
-    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
-    # Αν το EXE είναι στο root, ο analyzer φάκελος υπάρχει εκεί
-    if os.path.exists(os.path.join(exe_dir, "analyzer")):
-        project_root = exe_dir
+def get_project_root():
+    if getattr(sys, 'frozen', False):
+        # Όταν τρέχουμε ως EXE, ο sys.executable είναι η διαδρομή του .exe
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+        # 1. Έλεγχος αν ο analyzer είναι στον ίδιο φάκελο (flat structure)
+        if os.path.exists(os.path.join(exe_dir, "analyzer")):
+            return exe_dir
+        # 2. Έλεγχος αν είμαστε στο launcher/dist (ανάπτυξη)
+        parent = os.path.abspath(os.path.join(exe_dir, "..", ".."))
+        if os.path.exists(os.path.join(parent, "analyzer")):
+            return parent
+        # 3. Fallback στο AppData αν πρόκειται για εγκατεστημένη εφαρμογή
+        return exe_dir
     else:
-        # Αν το EXE είναι μέσα στο launcher/dist, πηγαίνουμε δύο επίπεδα πάνω
-        project_root = os.path.abspath(os.path.join(exe_dir, "..", ".."))
-        if not os.path.exists(os.path.join(project_root, "analyzer")):
-            # Fallback αν είναι απλά στο launcher/
-            project_root = os.path.abspath(os.path.join(exe_dir, ".."))
-else:
-    # Κανονική εκτέλεση από Python
-    launcher_internal_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(launcher_internal_dir, ".."))
+        # Κανονική εκτέλεση από Python
+        launcher_internal_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.abspath(os.path.join(launcher_internal_dir, ".."))
 
+project_root = get_project_root()
 launcher_dir = os.path.join(project_root, "launcher")
 analyzer_dir = os.path.join(project_root, "analyzer")
 venv_dir = os.path.join(analyzer_dir, "venv")
@@ -164,7 +166,7 @@ class PapatzisLauncher(QMainWindow):
         sidebar_layout.addStretch()
         
         # App Version
-        ver_lbl = QLabel("v1.1.0-portable-ready")
+        ver_lbl = QLabel("v1.5.0-stable")
         ver_lbl.setStyleSheet(f"color: {THEME['text_dim']}; font-size: 10px;")
         ver_lbl.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(ver_lbl)

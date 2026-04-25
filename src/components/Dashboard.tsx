@@ -117,58 +117,95 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       if (!path) return;
 
       const score = Math.round(analysisResult.final_score);
-      const verdict = analysisResult.interpretation;
+      const sessionId = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+      // Report Header
+      let report = `# 📂 CASE FILE: PAPATZIS SPOTTER VERDICT\n`;
+      report += `\`SESSION_ID: ${sessionId}\` | \`CORE_VERSION: 1.4.1-embedded\` | \`TIMESTAMP: ${now.toLocaleString()}\`\n\n`;
       
-      let report = `# 📁 CASE FILE: PAPATZIS SPOTTER VERDICT\n`;
-      report += `**STATUS:** [CONFIDENTIAL]\n`;
-      report += `**DATE:** ${now.toLocaleString()}\n`;
-      report += `**SUBJECT:** AI Slop Forensic Analysis\n\n`;
-      report += `---\n\n`;
-      report += `## ⚖️ THE VERDICT: ${verdict}\n`;
-      report += `**FINAL SCORE:** ${score} / 100\n`;
-      report += `**CONFIDENCE:** ${Math.round(analysisResult.confidence_score * 100)}%\n\n`;
+      report += `## ⚖️ ${lang === 'EL' ? 'ΤΟ ΠΟΡΙΣΜΑ' : 'THE VERDICT'}: ${getScoreLabel()}\n`;
+      report += `> **${lang === 'EL' ? 'ΣΥΝΟΛΙΚΟ SCORE' : 'FINAL SCORE'}:** ${score} / 100\n`;
+      report += `> **${lang === 'EL' ? 'ΒΑΘΜΟΣ ΣΙΓΟΥΡΙΑΣ' : 'CONFIDENCE'}:** ${Math.round(analysisResult.confidence_score * 100)}%\n\n`;
       
-      report += `### 🔎 EXECUTIVE SUMMARY\n`;
+      report += `### 🔎 ${lang === 'EL' ? 'ΣΥΝΟΠΤΙΚΗ ΑΞΙΟΛΟΓΗΣΗ' : 'FORENSIC SUMMARY'}\n`;
       if (score > 70) {
-        report += `The code exhibits high statistical uniformity and structural symmetry. It is a hollow shell, likely prompt-engineered with zero human intentionality. Human edge: Lost.\n\n`;
+        report += lang === 'EL' 
+          ? `🚨 **ΚΡΙΣΙΜΟ SLOP.** Ο κώδικας εμφανίζει ακραία δομική συμμετρία και στατιστική προβλεψιμότητα. Στερείται οργανικής πολυπλοκότητας και ανθρώπινης πρόθεσης. Η χρήση του ως έχει ενέχει ρίσκο "ψηφιακής παπάτζας".\n\n`
+          : `🚨 **CRITICAL SLOP DETECTED.** The code exhibits extreme structural symmetry and statistical predictability. It lacks organic complexity and human intentionality. Use as-is is highly suspicious.\n\n`;
       } else if (score > 30) {
-        report += `Suspicious patterns detected. The logic feels "too clean," suggesting heavy AI assistance or uncurated boilerplate copying. Proceed with caution.\n\n`;
+        report += lang === 'EL'
+          ? `⚠️ **ΥΠΟΠΤΑ ΜΟΤΙΒΑ.** Εντοπίστηκαν μοτίβα που παραπέμπουν σε βαριά χρήση AI χωρίς επιμέλεια. Ο κώδικας μοιάζει "υπερβολικά καθαρός" για να είναι 100% χειροποίητος. Συνιστάται έλεγχος.\n\n`
+          : `⚠️ **SUSPICIOUS PATTERNS.** Detected patterns characteristic of heavy AI assistance. The structure feels "too clean" to be purely organic. Verification of architectural intent is recommended.\n\n`;
       } else {
-        report += `No significant AI signatures found. The code bears the organic marks of human reasoning and intentionality. Integrity: High.\n\n`;
+        report += lang === 'EL'
+          ? `✅ **ΑΝΘΡΩΠΙΝΗ ΑΚΕΡΑΙΟΤΗΤΑ.** Δεν ανιχνεύθηκαν σημαντικά AI αποτυπώματα. Ο κώδικας φέρει τα οργανικά σημάδια της ανθρώπινης λογικής, με απρόβλεπτη αλλά στοχευμένη δομή.\n\n`
+          : `✅ **HUMAN INTEGRITY VERIFIED.** No meaningful AI signatures detected. The code displays organic reasoning and intentional complexity consistent with human craftsmanship.\n\n`;
       }
 
       report += `---\n\n`;
-      report += `## 📊 PILLAR BREAKDOWN\n\n`;
-      analysisResult.pillars.forEach(p => {
-        report += `- **${p.pillar}:** ${Math.round(p.score)}/100 (${p.findings.length} findings)\n`;
-      });
-      report += `\n---\n\n`;
+      report += `## 📊 ${lang === 'EL' ? 'ΑΝΑΛΥΣΗ ΑΝΑ ΠΥΛΩΝΑ' : 'PILLAR-BY-PILLAR AUDIT'}\n\n`;
+      
+      const pillarDescs: Record<string, { el: string, en: string }> = {
+        'Ρομποτική Ομοιομορφία': {
+          el: 'Έλεγχος δομικής συμμετρίας και "τέλειων" αποστάσεων που σπάνια διατηρεί άνθρωπος.',
+          en: 'Structural symmetry and textbook-perfect spacing that humans rarely maintain.'
+        },
+        'Βαφτιστικό Slop': {
+          el: 'Εντοπισμός γενόσημων ονομάτων (data, list, item) που χρησιμοποιούν τα LLMs.',
+          en: 'Generic naming patterns often used by AI to fill architectural gaps.'
+        },
+        'Στατιστική Φλυαρία': {
+          el: 'Μέτρηση περιττών σχολίων και πλεονασματικού κώδικα (boilerplate).',
+          en: 'Excessive verbosity and redundant comments that explain the obvious.'
+        },
+        'GPT-Style Παπατζιλίκι': {
+          el: 'Ανίχνευση συγκεκριμένων εκφράσεων και "ευγενικών" δομών τυπικών για AI.',
+          en: 'Specific catchphrases and "polite" structural markers common in AI outputs.'
+        },
+        'Ύποπτο Drift Κώδικα': {
+          el: 'Απότομες αλλαγές στο στυλ γραφής μέσα στο ίδιο αρχείο.',
+          en: 'Sudden shifts in coding style or mental model within the same file.'
+        }
+      };
 
-      report += `## 📝 EVIDENCE LOG (FINDINGS)\n\n`;
+      analysisResult.pillars.forEach(p => {
+        const info = pillarDescs[p.pillar] || { el: 'Ανάλυση στατικών μοτίβων.', en: 'Static pattern analysis.' };
+        const desc = lang === 'EL' ? info.el : info.en;
+        report += `#### 🔹 ${t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}\n`;
+        report += `- **Score:** ${Math.round(p.score)}/100\n`;
+        report += `- **Findings:** ${p.findings.length}\n`;
+        report += `- **Focus:** ${desc}\n\n`;
+      });
+
+      report += `---\n\n`;
+      report += `## 📝 ${lang === 'EL' ? 'ΑΡΧΕΙΟ ΑΠΟΔΕΙΞΕΩΝ (FINDINGS)' : 'EVIDENCE LOG (FINDINGS)'}\n\n`;
+      
       if (analysisResult.pillars.some(p => p.findings.length > 0)) {
         analysisResult.pillars.forEach(p => {
           if (p.findings.length > 0) {
-            report += `### 🏗️ ${p.pillar}\n`;
+            report += `### 🏗️ ${t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}\n`;
             p.findings.forEach((f, i) => {
               report += `#### Finding #${i+1}: ${f.message}\n`;
               report += `- **Location:** Line ${f.line}\n`;
               report += `- **Rationale:** ${f.rationale}\n`;
               report += `- **Human Fix:** ${f.human_alternative}\n\n`;
             });
+            report += `\n`;
           }
         });
       } else {
-        report += `*No incriminating evidence found. Subject is clean.*\n\n`;
+        report += `*${lang === 'EL' ? 'Δεν βρέθηκαν επιβαρυντικά στοιχεία. Το υποκείμενο είναι καθαρό.' : 'No incriminating evidence found. Subject is clean.'}*\n\n`;
       }
 
       report += `---\n`;
-      report += `*Verified by Papatzis Spotter. Built for humans, by humans. 🦀🐍*\n`;
+      report += `*${lang === 'EL' ? 'Πιστοποιήθηκε από το Papatzis Spotter. Φτιαγμένο για ανθρώπους, από ανθρώπους.' : 'Verified by Papatzis Spotter. Built for humans, by humans.'} 🦀🐍*\n`;
 
       await writeTextFile(path, report);
       addToast(lang === 'EL' ? 'Ο φάκελος εξήχθη επιτυχώς!' : 'Case file exported successfully!', 'success');
     } catch (error) {
       console.error('Export failed:', error);
-      addToast(lang === 'EL' ? 'Η εξαγωγή απέτυχε' : 'Export failed', 'error');
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      addToast(lang === 'EL' ? `Η εξαγωγή απέτυχε: ${errorMsg}` : `Export failed: ${errorMsg}`, 'error');
     }
   };
 
