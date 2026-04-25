@@ -5,67 +5,74 @@
 ---
 
 <a name="ελληνικά"></a>
-## 🇬🇷 Ελληνικά: Το Μανιφέστο του Παπατζή
+## 🇬🇷 Ελληνικά: Το Motivation πίσω από το Project
 
-### "Αυτό είναι AI, το καταλαβαίνω από το vibe."
-Όλα ξεκίνησαν με αυτή τη φράση. Ένας καθηγητής, μια διπλωματική εργασία, και η αυθαίρετη απόρριψη βασισμένη όχι σε αποδείξεις, αλλά σε μια "διαίσθηση". Ο ψηφιακός παπατζής είχε μόλις εμφανιστεί στην αίθουσα, παίζοντας το παιχνίδι "πού είναι η αλήθεια" με την καριέρα ενός φοιτητή.
+### Από το "Vibe" στα Δεδομένα
+Η ιδέα για το **Papatzis Spotter** δεν γεννήθηκε σε θεωρητικό επίπεδο, αλλά από μια πραγματική ανάγκη για τεχνική τεκμηρίωση απέναντι στο "ψηφιακό gaslighting". 
 
-Το **Papatzis Spotter** γεννήθηκε από την ανάγκη να αντιστρέψουμε τους όρους. Αν οι άνθρωποι πρόκειται να κατηγορούν άλλους για "Slop" (ψηφιακή σαβούρα παραγόμενη από LLMs), ας το κάνουν με δεδομένα, όχι με μαντεψιές.
+Όλα ξεκίνησαν όταν κλήθηκα να αξιολογήσω έναν κώδικα που παρουσιάστηκε ως "πρότυπο ακαδημαϊκό έργο". Ως developer, η πρώτη επαφή με το source code μου προκάλεσε άμεση καχυποψία. Ο κώδικας δεν είχε "ανθρώπινο αποτύπωμα":
+- **Υπερβολική Φλυαρία:** Σχόλια που εξηγούσαν τα αυτονόητα με μια αποστειρωμένη ευγένεια.
+- **Μηχανική Δομή:** Μια τέλεια, αλλά "άψυχη" οργάνωση που θύμιζε έντονα το default output των LLMs.
 
-### Τι είναι το Papatzis Spotter;
-Είναι ένας εξελιγμένος μηχανισμός ανάλυσης κώδικα (Python/C/TS) που δεν ψάχνει απλά για "AI ίχνη", αλλά αναλύει την **ψυχή** του κώδικα:
-- **Δομική Ανάλυση (Structural):** Ψάχνει για τα επαναλαμβανόμενα μοτίβα που λατρεύουν τα LLMs.
-- **Ανάλυση Σχολίων (Comments):** Εντοπίζει την υπερβολικά ευγενική και επεξηγηματική "φλυαρία" της τεχνητής νοημοσύνης.
-- **Στατιστική Πιθανότητα (Statistical):** Μετράει την εντροπία και τη μεταβλητότητα του κώδικα.
-- **Naming Patterns:** Ξεσκεπάζει τα "τέλεια" ονόματα μεταβλητών που κανένας άνθρωπος δεν θα χρησιμοποιούσε στις 3 το πρωί.
+Όταν η χρήση AI διαψεύστηκε κατηγορηματικά, αποφάσισα να το ερευνήσω με τα μέσα που διαθέτω. Πέρασα τα δείγματα από το δικό μου tech stack (local LLMs σε Proxmox server και cloud engines). Η ετυμηγορία ήταν ομόφωνη: **High-dose AI Slop.**
 
-### Γιατί το χρειαζόμαστε;
-Γιατί ο "Ψηφιακός Παπατζής" είναι παντού:
-1. Στον καθηγητή που βαριέται να διορθώσει και πετάει μια ρετσινιά "AI".
-2. Στον developer που γεμίζει το repo με ασυνάρτητο κώδικα από το ChatGPT.
-3. Στην ανάγκη μας για αλήθεια σε έναν κόσμο γεμάτο Slop.
+**Γιατί το έφτιαξα:**
+Συνειδητοποίησα ότι στον ακαδημαϊκό και επαγγελματικό χώρο, η κρίση για το αν κάτι είναι "προϊόν AI" βασίζεται συχνά σε μια αόριστη διαίσθηση (το "vibe"). Αυτό οδηγεί σε δύο άκρα: 
+1. Σε ανθρώπους που παρουσιάζουν Slop ως δικό τους έργο (οι "Παπατζήδες").
+2. Σε εξεταστές που απορρίπτουν αυθαίρετα γνήσιο έργο φοιτητών επειδή "τους φαίνεται για AI".
+
+Το Papatzis Spotter είναι το εργαλείο που μετατρέπει αυτή τη διαίσθηση σε **συγκεκριμένα metrics**, δίνοντας απαντήσεις βασισμένες σε δομική και στατιστική ανάλυση.
 
 ---
 
-### Τεχνική Εγκατάσταση
-1. **Προαπαιτούμενα:** Python 3.10+, Node.js (για το UI).
-2. **Setup:**
-   ```bash
-   pip install -r analyzer/requirements.txt
-   npm install
-   ```
-3. **Run:**
-   ```bash
-   npm run tauri dev
-   ```
+### Τεχνικά Χαρακτηριστικά
+Ο μηχανισμός ανάλυσης επικεντρώνεται σε:
+- **Structural Analysis:** Εντοπισμός επαναλαμβανόμενων μοτίβων και "LLM-isms" στη δομή.
+- **Comment Analysis:** Αξιολόγηση της πυκνότητας και του ύφους των σχολίων.
+- **Statistical Entropy:** Μέτρηση της μεταβλητότητας και της προβλεψιμότητας του κώδικα.
+- **Naming Conventions:** Ανάλυση της πιθανότητας τα ονόματα των μεταβλητών να έχουν παραχθεί από μηχανή.
 
 ---
 
 <a name="english"></a>
-## 🇬🇧 English: The Papatzis Manifesto
+## 🇬🇧 English: Developer Motivation
 
-### "This is AI, I can feel the vibe."
-It all started with those words. A professor, a final thesis, and an arbitrary rejection based not on evidence, but on a "hunch." The digital shell game player (The "Papatzis") had just entered the room, playing "find the truth" with a student's future.
+### From "Vibe" to Data
+The idea for **Papatzis Spotter** wasn't born from theory, but from a practical need for technical documentation against "digital gaslighting."
 
-**Papatzis Spotter** was born from the need to flip the script. If people are going to accuse others of "Slop" (low-quality, LLM-generated content), let them do it with data, not guesses.
+It all started when I reviewed code presented as a "model academic work." As a developer, my first look at the source code triggered immediate suspicion. The code lacked a "human scent":
+- **Verbosity Overload:** Comments explaining the obvious with sterile, robotic politeness.
+- **Mechanical Structure:** A perfect but "soulless" organization that mirrored default LLM outputs.
 
-### What is Papatzis Spotter?
-It is a sophisticated code analysis engine (Python/C/TS) that doesn't just look for "AI traces" but analyzes the **soul** of the code:
-- **Structural Analysis:** Searches for the repetitive patterns that LLMs love.
-- **Comment Analysis:** Identifies the overly polite and verbose "chatter" of AI.
-- **Statistical Probability:** Measures code entropy and variability.
-- **Naming Patterns:** Unmasks the "perfect" variable names that no human would use at 3 AM.
+When AI involvement was flatly denied, I decided to verify it using my own tech stack (local LLMs on a Proxmox server and various cloud engines). The verdict was unanimous: **High-dose AI Slop.**
 
-### Why do we need it?
-Because the "Digital Papatzis" is everywhere:
-1. In the professor who is too lazy to grade and just slaps an "AI-generated" label.
-2. In the developer who fills the repo with incoherent ChatGPT output.
-3. In our need for truth in a world drowning in Slop.
+**Why I Built This:**
+I realized that in both academic and professional environments, judging whether something is "AI-generated" often relies on a vague hunch (the "vibe"). This leads to two extremes:
+1. People passing off "Slop" as their own work (the "Papatzis" or shell game players).
+2. Examiners arbitrarily rejecting authentic student work because it "looks like AI."
+
+Papatzis Spotter is the tool that converts that gut feeling into **concrete metrics**, providing answers based on structural and statistical analysis.
 
 ---
 
-### Technical Setup
-1. **Prerequisites:** Python 3.10+, Node.js (for the UI).
+### Technical Overview
+The analysis engine focuses on:
+- **Structural Analysis:** Detecting repetitive patterns and "LLM-isms" in code structure.
+- **Comment Analysis:** Evaluating comment density, tone, and verbosity.
+- **Statistical Entropy:** Measuring code variability and predictability.
+- **Naming Conventions:** Analyzing the probability of machine-generated identifiers.
+
+---
+
+### Installation & Setup
+
+#### 🚀 Automated Solution (Windows)
+For a quick start on Windows, simply run:
+- **`run_orchestrator.bat`**
+This script handles virtual environment creation, dependency installation, and starts the Orchestrator in the background.
+
+#### 🛠️ Manual Installation
+1. **Prerequisites:** Python 3.10+, Node.js.
 2. **Setup:**
    ```bash
    pip install -r analyzer/requirements.txt
@@ -77,4 +84,27 @@ Because the "Digital Papatzis" is everywhere:
    ```
 
 ---
-*Created to fight academic arbitrariness and digital laziness.*
+
+### 🖥️ CLI Example Output
+Όταν το Papatzis Spotter αναλύει ένα αρχείο, το output είναι ξεκάθαρο και άμεσο:
+
+**Case A: Human-crafted code**
+```bash
+papatzis audit ./editor.py
+[OK] Slop Score: 12.4%
+[OK] Humanity shield active.
+[OK] Craftsmanship detected.
+[READY] Safe for production.
+```
+
+**Case B: Detected Slop**
+```bash
+papatzis audit ./generator.py
+[FAIL] Slop Score: 98.3%
+[!] Pillar: Robotic Uniformity (93.3)
+[!] Finding: Architecture Overkill detected. Logic 8/10 Slop density.
+[STATUS] High Risk: AI-Generated Slop.
+```
+
+---
+*Built to bring objectivity to code origin analysis.*

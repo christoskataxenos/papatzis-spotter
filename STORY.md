@@ -1,50 +1,37 @@
-# 🏛️ The Papatzis Manifesto: Unmasking the Digital Con Artist
+# Papatzis Spotter: The Creator's Journey 🛠️
 
-> *The true story behind the birth of Papatzis Spotter. From a student's observation to a global stand against "AI Slop".*
+Αυτό το project δεν ξεκίνησε από ένα "cool idea" σε ένα whiteboard. Ξεκίνησε από μια στιγμή τεχνικής αγανάκτησης και την ανάγκη να βρεθεί η αλήθεια μέσα σε έναν ωκεανό από AI-generated "θόρυβο".
 
-## 🌐 Language / Γλώσσα
-- [English](#-english-version)
-- [Ελληνικά](#-ελληνική-έκδοση)
+## 01. Η Σπίθα: Το Τεχνικό Gaslighting
+Όλα άρχισαν όταν βρέθηκα μπροστά σε έναν κώδικα που "φώναζε" AI, αλλά ο δημιουργός του επέμενε στο αντίθετο. Ως developer, ξέρεις πότε ο κώδικας έχει "ψυχή" και πότε είναι απλά ένα προβλέψιμο output. 
 
----
+Εκείνη η στιγμή της αμήχανης άρνησης (το κλασικό "παπατζιλίκι") ήταν η αφορμή. Αντί όμως να μείνω στη διαίσθηση, αποφάσισα να χρησιμοποιήσω την τεχνολογία για να ξεσκεπάσω την τεχνολογία.
 
-## 🇺🇸 English Version
+## 02. Η Φάση της Επαλήθευσης: Local LLMs & Proxmox
+Για να είμαι σίγουρος, έπρεπε να κάνω "reverse engineer" το ίδιο το AI. 
+- **Το Setup:** Χρησιμοποίησα το δικό μου tech stack (local LLMs στον Proxmox server μου) για να αναλύσω τα patterns.
+- **Το Εύρημα:** Διαπίστωσα ότι το AI, όσο "έξυπνο" κι αν φαίνεται, έχει συγκεκριμένα **DNA traces**: μια εμμονή με το boilerplate, μια αποστειρωμένη ευγένεια στα σχόλια και μια δομική ομοιομορφία που κανένας άνθρωπος δεν θα διατηρούσε για ώρα.
 
-### 🎓 The Spark: From EAP to a Global Stand
-Everything started with an observation during my studies at the **Hellenic Open University (EAP)**. I noticed a recurring pattern: in student assignments, professional projects, and even in solutions from senior leads, the code was losing its "character." 
+## 03. Η Φιλοσοφία: Γιατί χτίζουμε "Τείχη";
+Το Papatzis Spotter δεν είναι ένα εργαλείο κατά του AI — είναι ένα εργαλείο **υπέρ του Craftsmanship**. 
+Το πρόβλημα δεν είναι η χρήση του AI (όλοι το χρησιμοποιούμε το 2026), αλλά η **απώλεια της ευθύνης**. Όταν κάνεις copy-paste "παπάτζες" χωρίς να καταλαβαίνεις τι κάνουν, παύεις να είσαι Engineer και γίνεσαι "Prompt Technician". 
 
-The advent of LLMs brought a convenience that quickly turned into **"AI Slop."** Code that, while functional, is "flat," with generic naming and overly symmetrical structures. When you see the same "perfect but empty" structure again and again, something inside you gets triggered.
+Το project αυτό είναι ο καθρέφτης που σε αναγκάζει να δεις το "Slop" (την ψηφιακή σαβούρα) κατάμουτρα.
 
-### 🎯 Why Papatzis Spotter?
-I built this because I believe in **Pure Science** over AI "guesses":
-1.  **The AI-for-AI Paradox**: Most detectors use AI to find AI. I wanted to break this cycle using static analysis and heuristics.
-2.  **Privacy First**: No API keys, no internet. Your code stays local.
-3.  **Low Hardware Footprint**: Smart analysis shouldn't require a 5090ti cluster.
+## 04. Η Υλοποίηση: Πώς το λύσαμε (The 5 Pillars)
+Δεν ήθελα ένα εργαλείο που κάνει "μαντεψιές". Ήθελα κάτι που "ξεκοιλιάζει" τον κώδικα.
+- **AST Analysis:** Αντί για απλό text search, ο Analyzer αναλύει το **Abstract Syntax Tree**. Βλέπουμε τον σκελετό της λογικής.
+- **Logic-to-Boilerplate Ratio:** Εδώ πιάνουμε το "Architecture Overkill". Το AI λατρεύει να φτιάχνει 15 interfaces για να κάνει ένα `strip()`.
+- **Linguistic DNA:** Σκανάρουμε για buzzwords ("delving into", "holistic") που προδίδουν το robotic ύφος.
+- **Entropy Tracking:** Ο άνθρωπος είναι χαοτικός. Το AI είναι τρομακτικά συνεπές. Η έλλειψη εντροπίας είναι το μεγαλύτερο red flag.
 
-### 🏛️ The Philosophy
-The "Papatzis" is a Greek figure representing the con artist of sleight-of-hand — the "cup and ball" game (*εδώ παπάς, εκεί παπάς*). AI today often acts like a digital papatzis: it shows you code that looks perfect, but beneath the surface lies a lack of depth and true understanding. 
+## 05. Το Οικοσύστημα: Από το CLI στο UI
+Η λύση έπρεπε να είναι παντού:
+1.  **CLI (Audit):** Για γρήγορο έλεγχο στο terminal.
+2.  **UI (Radar Charts):** Γιατί μια εικόνα (το πού "μπάζει" ο κώδικας) αξίζει όσο χίλια logs.
+3.  **Git Bouncer:** Ο "πορτιέρης" που κρατάει τη λαδιά τοπικά. Αν το Slop Score είναι ψηλά, το commit κόβεται.
 
-This project is an effort to protect **quality**, **craftsmanship**, and **human intentionality**.
+## Επίλογος: Η Ευθύνη του Δημιουργού
+Στο τέλος της ημέρας, το Papatzis Spotter είναι εδώ για να μας θυμίζει ότι ο κώδικας πρέπει να έχει "ιδρώτα". Είναι ένας μηχανισμός που προστατεύει την ακαδημαϊκή και επαγγελματική ακεραιότητα, μετατρέποντας το "vibe" σε **χειροπιαστά δεδομένα**.
 
----
-
-## 🇬🇷 Ελληνική Έκδοση
-
-### 🎓 Η Σπίθα: Από το ΕΑΠ στην Παγκόσμια "Παπάτζα"
-Όλα ξεκίνησαν από μια παρατήρηση στο **Ελληνικό Ανοικτό Πανεπιστήμιο (ΕΑΠ)**. Άρχισα να προσέχω ένα επαναλαμβανόμενο μοτίβο: τόσο σε εργασίες φοιτητών όσο και σε επαγγελματικά projects, ο κώδικας άρχισε να χάνει τον "χαρακτήρα" του.
-
-Η έλευση των LLMs έφερε μια ευκολία που γρήγορα μετατράπηκε σε **"AI Slop"**. Κώδικας που αν και λειτουργεί, είναι "επίπεδος", με generic ονοματολογία και υπερβολικά συμμετρική δομή. Όταν βλέπεις την ίδια "τέλεια αλλά κενή" δομή ξανά και ξανά, κάτι μέσα σου "τριγκάρεται".
-
-### 🎯 Γιατί το Papatzis Spotter;
-Το έχτισα γιατί πιστεύω στην **Καθαρή Επιστήμη** έναντι των "μαντεψιών" της AI:
-1.  **Το Παράδοξο της AI για την AI**: Οι περισσότεροι ανιχνευτές χρησιμοποιούν AI για να βρουν AI. Ήθελα να σπάσω αυτόν τον κύκλο με στατική ανάλυση και heuristics.
-2.  **Zero API Keys / Privacy First**: Χωρίς συνδρομές and internet. Ο κώδικας μένει τοπικά.
-3.  **Low Hardware Footprint**: Η έξυπνη ανάλυση δεν πρέπει να απαιτεί ένα cluster από 5090ti.
-
-### 🏛️ Η Φιλοσοφία
-Ο "Παπατζής" είναι μια φιγούρα που αντιπροσωπεύει την απατεωνιά της ταχυδακτυλουργίας — το "εδώ παπάς, εκεί παπάς". Η AI σήμερα λειτουργεί συχνά ως ένας ψηφιακός παπατζής: σου δείχνει έναν κώδικα που φαίνεται τέλειος, αλλά κάτω από την επιφάνεια κρύβεται μια έλλειψη βάθους. 
-
-Αυτό το project είναι μια προσπάθεια να προστατέψουμε την **ποιότητα**, τη **μαστοριά** και την **ανθρώπινη πρόθεση**.
-
----
-*Built for humans, by humans. 🦀🐍*
+**Μην αφήνεις την AI να σου κλέψει την κρίση. Γίνε ο κυρίαρχος της μηχανής σου.**
