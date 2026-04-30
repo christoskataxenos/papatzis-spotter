@@ -72,19 +72,5 @@ $$J(A, B) = \frac{|A \cap B|}{|A \cup B|}$$
     *   **Reason:** Μέγιστη ακρίβεια και δυνατότητα επεξήγησης στον χρήστη.
 
 ---
-
-### 5. [EL] Οδηγίες για AI Agents (Vibe Coding) | [EN] AI Agent Instructions (Vibe Coding)
-
-**[EN] For implementation:**
-- Use `tree-sitter` to extract blocks.
-- Implement a `Jaccard` helper function that takes two sets.
-- Ensure set operations are efficient (N^2 comparison should be optimized for large files).
-- The final finding should report which functions/blocks were found to be suspiciously similar.
-
-**[EL] Για την υλοποίηση:**
-- Χρησιμοποίησε το `tree-sitter` για να "πιάσεις" τα blocks (functions/classes).
-- Φτιάξε μια helper `jaccard(setA, setB)`.
-- Το τελικό "Finding" πρέπει να αναφέρει ποιες συγκεκριμένες συναρτήσεις μοιάζουν μεταξύ τους.
-
----
 *Built for objectivity in code origin analysis. Papatzis Spotter V3.*
+
