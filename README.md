@@ -54,6 +54,28 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 
 ---
 
+## Visual Interface
+
+<p align="center">
+  <img src="assets/screenshots/home.png" width="800" alt="Home Screen">
+  <br>
+  <i><b>The Neural Diagnostic Hub</b> — Where the hunt begins.</i>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/results.png" width="800" alt="Analysis Results">
+  <br>
+  <i><b>Forensic Findings</b> — Deep-dive analysis with intelligent grouping and scoring.</i>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/help.png" width="800" alt="Help Guide">
+  <br>
+  <i><b>The Survival Guide</b> — Understanding the patterns of digital con-artistry.</i>
+</p>
+
+---
+
 ## Key Features V3.5
 
 - **Entropy-Driven Detection:** High-precision analysis based on information entropy.
