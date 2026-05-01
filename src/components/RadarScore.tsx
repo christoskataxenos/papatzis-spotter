@@ -27,7 +27,7 @@ export const RadarScore: React.FC<RadarScoreProps> = ({ pillars, hideLabels = tr
   return (
     <div className="w-full h-full relative group">
       
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
         <RadarChart 
           cx="50%" 
           cy="50%" 
@@ -36,13 +36,13 @@ export const RadarScore: React.FC<RadarScoreProps> = ({ pillars, hideLabels = tr
           margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
         >
           <PolarGrid 
-            stroke="rgba(255,255,255,0.06)" 
+            stroke="var(--border-default)" 
             strokeDasharray="3 3"
           />
           {!hideLabels && (
             <PolarAngleAxis 
               dataKey="subject" 
-              tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}
+              tick={{ fill: 'var(--text-disabled)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em' }}
             />
           )}
           <Radar
@@ -51,7 +51,7 @@ export const RadarScore: React.FC<RadarScoreProps> = ({ pillars, hideLabels = tr
             stroke="var(--accent-primary)"
             strokeWidth={2}
             fill="var(--accent-primary)"
-            fillOpacity={0.25}
+            fillOpacity={0.15}
             animationDuration={1500}
             animationEasing="ease-out"
           />

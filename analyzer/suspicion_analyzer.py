@@ -1,7 +1,7 @@
 import tree_sitter_language_pack
 from tree_sitter import Tree, Query, QueryCursor
-from base import BaseAnalyzer
-from models import Finding
+from analyzer.base import BaseAnalyzer
+from analyzer.models import Finding
 from typing import List
 import re
 
@@ -31,7 +31,7 @@ class SuspicionAnalyzer(BaseAnalyzer):
                 is_doc = False
                 if n.type == "string":
                     p = n.parent
-                    if p.type == "expression_statement" and p.parent.type == "block":
+                    if (p.type == "expression_statement" and p.parent.type == "block") or p.type == "block":
                         is_doc = True
                 if n.type == "comment" or is_doc:
                     comment_chars += len(n.text)
@@ -50,9 +50,9 @@ class SuspicionAnalyzer(BaseAnalyzer):
                     line=1,
                     severity=2.0,
                     confidence=0.8,
-                    message=f"Υψηλή Πυκνότητα Φλυαρίας ({ratio:.1f}x): Τα σχόλια/docstrings πνίγουν τον κώδικα.",
-                    human_alternative="Αφαιρέστε την περιττή φλυαρία. Ο κώδικας πρέπει να είναι η προτεραιότητα.",
-                    rationale="Τα LLMs συχνά παράγουν τεράστιες επεξηγήσεις για πολύ μικρά κομμάτια κώδικα (Statistical Verbiage)."
+                    message=f"Statistical Verbiage (Ratio: {ratio:.1f}x)",
+                    human_alternative="Αφαίρεσε τα αυτονόητα σχόλια. Αν ο κώδικας είναι `x = 5`, δεν χρειάζεται docstring 10 γραμμών που να εξηγεί την έννοια της ανάθεσης τιμής.",
+                    rationale="Τα AI μοντέλα 'πληρώνονται' (μεταφορικά) για να είναι ομιλητικά. Συχνά παράγουν τεράστιες επεξηγήσεις για πολύ απλό κώδικα, κάτι που ένας έμπειρος προγραμματιστής αποφεύγει για να μην 'θάψει' την ουσία."
                 ))
 
         # 2. Architecture Overkill (Phase 2.2)
@@ -68,9 +68,9 @@ class SuspicionAnalyzer(BaseAnalyzer):
                     line=1,
                     severity=2.5,
                     confidence=0.9,
-                    message="Architecture Overkill: Βαριά αρχιτεκτονική (Manager/Factory) για trivial λογική.",
-                    human_alternative="Μην χρησιμοποιείτε πολύπλοκα patterns (Factories, Managers) αν ο σκοπός είναι απλός.",
-                    rationale="Κλασικό δείγμα AI Slop: το AI εφαρμόζει 'enterprise' patterns ακόμα και σε ένα απλό Hello World ή Calculator."
+                    message="Architecture Overkill (Logic 8/Boilerplate 147)",
+                    human_alternative="Keep it Simple. Μην χτίζεις 'καθεδρικούς ναούς' (Managers, Factories) για να λύσεις ένα πρόβλημα που λύνεται με μια απλή συνάρτηση 5 γραμμών.",
+                    rationale="Είναι το κλασικό φαινόμενο του AI: προσπαθεί να εντυπωσιάσει εφαρμόζοντας enterprise patterns (όπως το Factory Pattern) ακόμα και σε ένα απλό script, κάνοντας τον κώδικα δυσκίνητο και 'ρομποτικό'."
                 ))
 
         # 3. AI Intro/Outro Filler
@@ -89,11 +89,11 @@ class SuspicionAnalyzer(BaseAnalyzer):
                     type="suspicion.ai_filler",
                     file=file_path,
                     line=1,
-                    severity=3.0, # High severity - clear AI signal
+                    severity=3.0,
                     confidence=1.0,
-                    message="Εντοπίστηκε AI Intro/Outro φράση.",
-                    human_alternative="Διαγράψτε τις επικοινωνιακές φράσεις του AI. Κρατήστε μόνο το τεχνικό μέρος.",
-                    rationale="Αυτές οι φράσεις είναι 100% υπογραφή ενός AI μοντέλου."
+                    message="AI Fingerprint Detected (Intro/Outro)",
+                    human_alternative="Διέγραψε αμέσως αυτές τις φράσεις. Προδίδουν ότι ο κώδικας είναι copy-paste από chat και δεν έχει ελεγχθεί από άνθρωπο.",
+                    rationale="Φράσεις όπως 'As an AI language model' ή 'Hope this helps' είναι η απόλυτη 'σφραγίδα' του AI. Η παρουσία τους στον κώδικα δείχνει έλλειψη προσοχής στη λεπτομέρεια."
                 ))
 
         return self.findings

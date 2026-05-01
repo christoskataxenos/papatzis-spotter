@@ -12,7 +12,9 @@ import {
   RotateCcw,
   Trophy,
   BarChart3,
-  FileText
+  FileText,
+  Code2,
+  Eye
 } from 'lucide-react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
@@ -22,14 +24,29 @@ import { Finding } from '../types/analysis';
 
 /* ─── Pillar Icon Helper ─── */
 const PillarIcon = ({ name }: { name: string }) => {
+  const size = 18;
+  const strokeWidth = 1.75;
   /* Match Greek names from engine */
   switch (name) {
-    case 'Βαφτιστικό Slop': return <Zap size={18} />;
-    case 'Ρομποτική Ομοιομορφία': return <AlignLeft size={18} />;
-    case 'Στατιστική Φλυαρία': return <BarChart3 size={18} />;
-    case 'GPT-Style Παπατζιλίκι': return <MessageSquare size={18} />;
-    case 'Ύποπτο Drift Κώδικα': return <RotateCcw size={18} />;
-    default: return <Zap size={18} />;
+    case 'AST_UNIFORMITY': return <AlignLeft size={size} strokeWidth={strokeWidth} />;
+    case 'NAMING': return <Zap size={size} strokeWidth={strokeWidth} />;
+    case 'STATISTICAL': return <BarChart3 size={size} strokeWidth={strokeWidth} />;
+    case 'COMMENTS': return <MessageSquare size={size} strokeWidth={strokeWidth} />;
+    case 'DRIFT': return <RotateCcw size={size} strokeWidth={strokeWidth} />;
+    case 'INTEGRITY': return <FileText size={size} strokeWidth={strokeWidth} />;
+    default: return <Zap size={size} strokeWidth={strokeWidth} />;
+  }
+};
+
+const getPillarColorVar = (name: string) => {
+  switch (name) {
+    case 'AST_UNIFORMITY': return 'var(--pillar-structure)';
+    case 'NAMING': return 'var(--pillar-naming)';
+    case 'STATISTICAL': return 'var(--pillar-stat)';
+    case 'COMMENTS': return 'var(--pillar-gpt)';
+    case 'DRIFT': return 'var(--pillar-drift)';
+    case 'INTEGRITY': return 'var(--pillar-template)';
+    default: return 'var(--accent-primary)';
   }
 };
 
@@ -72,20 +89,28 @@ const AnimatedScore = ({ target, color }: { target: number; color: string }) => 
 
 /* ─── Main Dashboard ─── */
 export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
-  const { analysisResult, setView, addToast } = useAppStore();
+  const { analysisResult, setView, addToast, setTargetLine, auditResults } = useAppStore();
   const t = translations[lang];
+
+  const formatPillarName = (key: string) => {
+    if (t.pillarNames[key as keyof typeof t.pillarNames]) {
+      return t.pillarNames[key as keyof typeof t.pillarNames];
+    }
+    // Fallback: Replace _ with space and Title Case
+    return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  };
 
   /* Empty state Check moved up */
   if (!analysisResult) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-6 anim-fade-in">
-        <div className="p-6 bg-surface-elevated rounded-3xl border border-white/[0.04]">
-          <ShieldAlert size={48} className="text-text-disabled" strokeWidth={1.5} />
+        <div className="p-6 bg-surface-elevated rounded-3xl border border-border-subtle">
+          <ShieldAlert size={48} className="text-text-disabled" strokeWidth={1.75} />
         </div>
         <h2 className="text-2xl font-bold text-text-secondary">{lang === 'EL' ? 'Δεν βρέθηκε ανάλυση' : 'No analysis found'}</h2>
         <button 
           onClick={() => setView('analyzer')}
-          className="flex items-center space-x-3 px-8 py-3.5 bg-surface-elevated border border-white/[0.06] rounded-xl hover:bg-white/[0.04] transition-all duration-300 group"
+          className="flex items-center space-x-3 px-8 py-3.5 bg-surface-elevated border border-border-default rounded-xl hover:bg-surface-hover transition-all duration-300 group"
         >
           <span className="font-semibold text-accent-primary text-sm">{lang === 'EL' ? 'Μετάβαση στον Analyzer' : 'Go to Analyzer'}</span>
           <ArrowRight size={18} className="text-accent-primary group-hover:translate-x-1 transition-transform" />
@@ -165,13 +190,17 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         'Ύποπτο Drift Κώδικα': {
           el: 'Απότομες αλλαγές στο στυλ γραφής μέσα στο ίδιο αρχείο.',
           en: 'Sudden shifts in coding style or mental model within the same file.'
+        },
+        'Template Integrity': {
+          el: 'Έλεγχος αν ο χρήστης τήρησε τις προδιαγραφές και τη δομή του template του καθηγητή.',
+          en: 'Verifies if the user maintained the required structure and components of the provided template.'
         }
       };
 
       analysisResult.pillars.forEach(p => {
         const info = pillarDescs[p.pillar] || { el: 'Ανάλυση στατικών μοτίβων.', en: 'Static pattern analysis.' };
         const desc = lang === 'EL' ? info.el : info.en;
-        report += `#### 🔹 ${t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}\n`;
+        report += `#### 🔹 ${formatPillarName(p.pillar)}\n`;
         report += `- **Score:** ${Math.round(p.score)}/100\n`;
         report += `- **Findings:** ${p.findings.length}\n`;
         report += `- **Focus:** ${desc}\n\n`;
@@ -183,7 +212,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       if (analysisResult.pillars.some(p => p.findings.length > 0)) {
         analysisResult.pillars.forEach(p => {
           if (p.findings.length > 0) {
-            report += `### 🏗️ ${t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}\n`;
+            report += `### 🏗️ ${formatPillarName(p.pillar)}\n`;
             p.findings.forEach((f, i) => {
               report += `#### Finding #${i+1}: ${f.message}\n`;
               report += `- **Location:** Line ${f.line}\n`;
@@ -234,76 +263,95 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
   };
 
   const totalFindings = analysisResult.pillars.reduce((acc, p) => acc + p.findings.length, 0);
+  const resultsArray = Array.isArray(auditResults) ? auditResults : [];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-20">
+    <div className="p-4 md:p-6 max-w-[1400px] mx-auto w-full space-y-8 pb-16">
 
       {/* ═══ Hero Score Section ═══ */}
-      <section className="flex flex-col items-center text-center space-y-6 py-8 md:py-10 bg-surface rounded-[2rem] border border-white/[0.04] shadow-strong relative anim-scale-in">
+      <section className="flex flex-col items-center text-center space-y-5 py-6 md:py-8 bg-surface rounded-[2rem] border border-border-subtle shadow-strong relative anim-scale-in">
         <div className="absolute inset-0 bg-noise" />
         
-        {/* Export Actions */}
-        <div className="absolute top-5 right-6 flex items-center space-x-2 z-20">
-          <button 
-            onClick={handleExportCaseFile}
-            className="flex items-center space-x-2 px-3 py-1.5 bg-white/[0.03] border border-white/[0.04] rounded-xl hover:bg-white/[0.06] transition-all duration-200 text-text-secondary hover:text-white group"
-            title={t.exportCaseFile}
-          >
-            <FileText size={14} className="group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Case File</span>
-          </button>
+          {/* Export Actions (Right) */}
+          <div className="absolute top-5 right-6 flex items-center space-x-2 z-20">
+            <button 
+              onClick={handleExportCaseFile}
+              className="flex items-center space-x-2 px-3 py-1.5 bg-surface-elevated border border-border-default rounded-xl hover:bg-surface-hover transition-all duration-200 text-text-secondary hover:text-text-primary group"
+              title={t.exportCaseFile}
+            >
+              <FileText size={14} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Case File</span>
+            </button>
 
-          <button 
-            onClick={handleCopyJSON}
-            className="p-2.5 bg-white/[0.03] border border-white/[0.04] rounded-xl hover:bg-white/[0.06] transition-all duration-200 text-text-secondary hover:text-white group"
-            title={t.copyJson}
-          >
-            <Copy size={14} className="group-hover:scale-110 transition-transform" />
-          </button>
-        </div>
-
-        {/* Score & Radar Section */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16 w-full max-w-5xl px-8 z-10">
-          
-          {/* Main Score Display */}
-          <div className="flex flex-col items-center justify-center space-y-0.5 shrink-0">
-            <AnimatedScore target={Math.round(analysisResult.final_score)} color={getScoreColor(analysisResult.final_score)} />
-            <p className="text-[9px] text-white uppercase tracking-[0.4em] font-black opacity-60">PapatzisScore</p>
+            <button 
+              onClick={handleCopyJSON}
+              className="p-2.5 bg-surface-elevated border border-border-default rounded-xl hover:bg-surface-hover transition-all duration-200 text-text-secondary hover:text-text-primary group"
+              title={t.copyJson}
+            >
+              <Copy size={14} strokeWidth={1.75} className="group-hover:scale-110 transition-transform" />
+            </button>
           </div>
 
-          {/* Radar Visualization */}
-          <div className="w-full max-w-[180px] h-[180px] md:max-w-[240px] md:h-[240px] xl:max-w-[280px] xl:h-[280px] relative anim-scale-in anim-delay-100">
+          {/* Back Action (Left) */}
+          <div className="absolute top-5 left-6 z-20">
+            {resultsArray.length > 0 && (
+              <button 
+                onClick={() => setView('audit')}
+                className="flex items-center space-x-2 px-3 py-1.5 bg-accent-primary text-white rounded-xl hover:scale-[1.03] transition-all duration-200 group"
+                title="Back to Audit Results"
+              >
+                <ArrowRight size={14} strokeWidth={1.75} className="rotate-180" />
+                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Back to Audit</span>
+              </button>
+            )}
+          </div>
+
+        {/* Score & Radar Section */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-5xl px-8 z-10">
+          
+          {/* Main Score Display */}
+          <div className="flex flex-col items-center justify-center space-y-0 shrink-0">
+            <AnimatedScore target={Math.round(analysisResult.final_score)} color={getScoreColor(analysisResult.final_score)} />
+            <p className="text-[9px] text-text-secondary uppercase tracking-[0.4em] font-bold opacity-60">{t.papatzisScore}</p>
+          </div>
+
+          {/* Radar Visualization — Framed in Glass */}
+          <div className="w-full max-w-[160px] h-[160px] md:max-w-[220px] md:h-[220px] xl:max-w-[260px] xl:h-[260px] relative anim-scale-in anim-delay-100 p-6 bg-glass-bg border border-border-subtle rounded-full shadow-inner-glow">
             <RadarScore pillars={analysisResult.pillars} lang={lang} />
           </div>
 
           {/* Vertical Pillars Legend (Right Side) */}
-          <div className="hidden md:flex flex-col items-start gap-4 py-2 border-l border-white/10 pl-10 min-w-[240px]">
+          <div className="hidden md:flex flex-col items-start gap-3.5 py-1 border-l border-border-default pl-10 min-w-[240px]">
              {analysisResult.pillars.map((p, idx) => (
                 <div 
                    key={p.pillar} 
                    className="flex items-center space-x-4 group anim-fade-in-right"
                    style={{ animationDelay: `${200 + idx * 100}ms` }}
                 >
-                   <div className={`p-2 rounded-xl transition-all duration-300
-                      ${p.score > 10 ? 'bg-slop/[0.08] text-slop' : p.score > 0 ? 'bg-warning/[0.08] text-warning' : 'bg-human/[0.08] text-human'}
-                   `}>
+                   <div 
+                     className="p-2 rounded-xl transition-all duration-300"
+                     style={{ 
+                       backgroundColor: `${getPillarColorVar(p.pillar)}15`, 
+                       color: getPillarColorVar(p.pillar) 
+                     }}
+                   >
                       <PillarIcon name={p.pillar} />
                    </div>
                    <div className="text-left">
-                      <p className="text-[10px] uppercase tracking-[0.15em] text-white/50 font-black leading-none mb-1.5">
-                         {t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}
+                      <p className="text-[11px] uppercase font-bold tracking-wider leading-none mb-2 text-text-primary opacity-90">
+                         {formatPillarName(p.pillar)}
                       </p>
                       <div className="flex items-center space-x-3">
-                         <div className="w-24 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                         <div className="w-24 h-1 bg-surface-hover rounded-full overflow-hidden">
                             <div 
                                className="h-full rounded-full transition-all duration-1000"
                                style={{ 
                                   width: `${p.score}%`,
-                                  backgroundColor: p.score > 10 ? 'var(--slop)' : (p.score > 0 ? 'var(--warning)' : 'var(--human)')
+                                  backgroundColor: getPillarColorVar(p.pillar)
                                }} 
                             />
                          </div>
-                         <span className="text-xs font-mono font-bold text-white/90">{Math.round(p.score)}</span>
+                         <span className="text-xs font-mono font-bold text-text-primary">{Math.round(p.score)}</span>
                       </div>
                    </div>
                 </div>
@@ -312,11 +360,11 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         </div>
         
         {/* Interpretation */}
-        <div className="space-y-3 z-10 px-6 anim-slide-up anim-delay-200">
-          <div className="inline-block px-4 py-1.5 bg-white/[0.03] rounded-full border border-white/[0.06] backdrop-blur-sm">
-            <span className="text-base md:text-lg font-bold text-white">{getScoreLabel()}</span>
+        <div className="space-y-2.5 z-10 px-6 anim-slide-up anim-delay-200">
+          <div className="inline-block px-4 py-1 bg-surface-elevated rounded-full border border-border-default backdrop-blur-sm">
+            <span className="text-base md:text-lg font-bold text-text-primary">{getScoreLabel()}</span>
           </div>
-          <div className="flex items-center justify-center space-x-4 pt-1">
+          <div className="flex items-center justify-center space-x-4 pt-0.5">
             <span className="text-[9px] text-text-disabled font-mono uppercase tracking-wider">{totalFindings} {t.findings}</span>
             <span className="text-text-disabled opacity-30">·</span>
             <span className="text-[9px] text-text-disabled font-mono uppercase tracking-wider">Confidence: {Math.round(analysisResult.confidence_score * 100)}%</span>
@@ -328,13 +376,13 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
 
 
       {/* ═══ Findings Detail ═══ */}
-      <section className="space-y-6 anim-slide-up anim-delay-300">
+      <section className="space-y-5 anim-slide-up anim-delay-300">
         
         {/* Header Section */}
-        <div className="space-y-6 border-b border-white/[0.04] pb-8">
+        <div className="space-y-5 border-b border-border-subtle pb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
-              <h2 className="text-3xl font-black tracking-tight text-white">{t.findingsAnalysis}</h2>
+              <h2 className="text-3xl font-black tracking-tight text-text-primary">{t.findingsAnalysis}</h2>
               {totalFindings > 0 && (
                 <div className="bg-slop/[0.12] text-slop px-3 py-1 rounded-full border border-slop/[0.2]">
                   <span className="text-[10px] font-black uppercase tracking-widest">{totalFindings} issues</span>
@@ -347,30 +395,33 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           </div>
 
           {/* Pillar Tabs (Responsive wrapping) */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
              {pillarsWithFindings.map((p) => (
                 <button
                    key={p.pillar}
                    onClick={() => setActivePillar(p.pillar)}
                    className={`
-                      group flex items-center space-x-3 px-5 py-3 rounded-2xl transition-all duration-300 border
+                      group flex items-center space-x-3 px-4 py-2.5 rounded-2xl transition-all duration-300 border
                       ${activePillar === p.pillar 
-                         ? 'bg-accent-primary text-bg font-bold border-accent-primary shadow-lg shadow-accent-primary/20 scale-[1.02]' 
-                         : 'bg-white/[0.03] text-text-secondary border-white/[0.04] hover:bg-white/[0.07] hover:border-white/[0.1]'
+                         ? 'bg-accent-primary text-white font-bold border-accent-primary shadow-lg shadow-accent-primary/20 scale-[1.02]' 
+                         : 'bg-surface-elevated text-text-secondary border-border-default hover:bg-surface-hover hover:border-border-hover'
                       }
                    `}
                 >
-                   <div className={`transition-transform duration-300 group-hover:scale-110 ${activePillar === p.pillar ? 'text-bg' : 'text-accent-primary/80'}`}>
+                   <div 
+                     className={`transition-transform duration-300 group-hover:scale-110 ${activePillar === p.pillar ? 'text-white' : ''}`}
+                     style={{ color: activePillar === p.pillar ? undefined : getPillarColorVar(p.pillar) }}
+                   >
                       <PillarIcon name={p.pillar} />
                    </div>
                    <span className="text-[11px] uppercase tracking-[0.15em] font-black">
-                      {t.pillarNames[p.pillar as keyof typeof t.pillarNames] || p.pillar}
+                      {formatPillarName(p.pillar)}
                    </span>
                    <div className={`
                       text-[10px] font-mono font-black px-2 py-0.5 rounded-lg border
                       ${activePillar === p.pillar 
-                        ? 'bg-bg/20 border-bg/10 text-bg' 
-                        : 'bg-white/5 border-white/5 text-text-disabled'
+                        ? 'bg-white/20 border-white/10 text-white' 
+                        : 'bg-surface border-border-subtle text-text-disabled'
                       }
                    `}>
                       {p.findings.length}
@@ -380,29 +431,45 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           </div>
         </div>
 
-        <div className="min-h-[300px]">
+        <div className="min-h-[250px]">
           {pillarsWithFindings.length > 0 ? (
             analysisResult.pillars.map(p => (p.pillar === activePillar && p.findings.length > 0) && (
-              <div key={p.pillar} className="space-y-5 anim-fade-in">
-                <div className="grid grid-cols-1 gap-4">
+              <div key={p.pillar} className="space-y-3 anim-fade-in">
+                <div className="grid grid-cols-1 gap-3">
                   {p.findings.map((f: Finding, i: number) => (
                     <div 
                       key={i} 
-                      className="bg-surface p-7 rounded-[2rem] flex flex-col space-y-4 border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.01] transition-all duration-500 group relative overflow-hidden"
+                      className="bg-surface p-6 rounded-[2rem] flex flex-col space-y-3.5 border border-border-subtle hover:border-border-default hover:bg-surface-hover transition-all duration-500 group relative overflow-hidden anim-stagger"
+                      style={{ animationDelay: `${i * 80}ms` }}
                     >
+                      <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.03] -mr-8 -mt-8 rotate-12 transition-transform duration-700 group-hover:rotate-0" style={{ color: getPillarColorVar(p.pillar) }}>
+                         <PillarIcon name={p.pillar} />
+                      </div>
                       
                       <div className="flex items-start justify-between gap-6 relative z-10">
                         <div className="space-y-1">
-                          <h4 className="text-base font-bold text-slop leading-snug group-hover:translate-x-0.5 transition-transform duration-300">{f.message}</h4>
+                          <h4 className="text-lg font-semibold leading-snug group-hover:translate-x-0.5 transition-transform duration-300 text-text-primary">{f.message}</h4>
                           <p className="text-sm text-text-secondary leading-relaxed opacity-80">{f.rationale}</p>
                         </div>
-                        <span className="text-[10px] bg-white/[0.05] px-3 py-1 rounded-lg font-mono text-text-disabled border border-white/[0.06] shrink-0 tracking-tighter">
-                          LINE {f.line}
-                        </span>
+                        <div className="flex flex-col items-end justify-between gap-4 shrink-0">
+                          <span className="text-[10px] bg-surface-elevated px-3 py-1 rounded-lg font-mono text-text-disabled border border-border-default tracking-tighter">
+                            LINE {f.line}
+                          </span>
+                          <button 
+                            onClick={() => {
+                              setTargetLine(f.line);
+                              setView('analyzer');
+                            }}
+                            className="p-2.5 bg-accent-primary/[0.08] border border-accent-primary/[0.12] rounded-xl text-accent-primary hover:bg-accent-primary hover:text-white transition-all duration-300 group/btn"
+                            title="Inspect in Editor"
+                          >
+                            <Eye size={16} strokeWidth={1.75} className="group-hover/btn:scale-110 transition-transform" />
+                          </button>
+                        </div>
                       </div>
                       {/* Πρόταση βελτίωσης */}
                       <div className="bg-human/[0.03] rounded-xl p-3 border border-human/[0.06] flex items-start space-x-2.5">
-                        <CheckCircle2 size={14} className="text-human mt-0.5 shrink-0" />
+                        <CheckCircle2 size={14} strokeWidth={1.75} className="text-human mt-0.5 shrink-0" />
                         <div className="space-y-0.5">
                           <p className="text-[9px] uppercase font-bold tracking-[0.15em] text-human/70">{t.humanSuggestion}</p>
                           <p className="text-[12px] text-text-primary font-medium leading-snug">{f.human_alternative}</p>
@@ -421,7 +488,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                 </div>
               </div>
               <div className="space-y-2 relative">
-                <h3 className="text-2xl font-bold text-white">Pure Human Integrity</h3>
+                <h3 className="text-2xl font-bold text-text-primary">Pure Human Integrity</h3>
                 <p className="text-text-secondary text-sm max-w-sm mx-auto">
                   {t.noIssuesText}
                 </p>
@@ -432,13 +499,21 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       </section>
 
       {/* ═══ Footer Action ═══ */}
-      <footer className="flex justify-center pt-6 pb-8">
+      <footer className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4 pb-6">
         <button 
           onClick={() => setView('analyzer')}
-          className="flex items-center space-x-3 px-8 py-4 bg-accent-primary text-bg font-bold rounded-2xl hover:scale-[1.03] active:scale-95 transition-all duration-300 shadow-lg shadow-accent-primary/15 hover:shadow-accent-primary/30"
+          className="flex items-center space-x-3 px-8 py-3.5 bg-accent-primary text-white font-bold rounded-2xl hover:scale-[1.03] active:scale-95 transition-all duration-300 shadow-lg shadow-accent-primary/15 hover:shadow-accent-primary/30"
         >
-          <RotateCcw size={18} />
-          <span className="uppercase tracking-[0.15em] text-[11px]">{t.analyzeNewCode}</span>
+          <Code2 size={18} strokeWidth={1.75} />
+          <span className="uppercase tracking-[0.15em] text-[11px]">ΠΡΟΒΟΛΗ ΣΤΟΝ EDITOR</span>
+        </button>
+
+        <button 
+          onClick={handleExportCaseFile}
+          className="flex items-center space-x-3 px-8 py-3.5 bg-surface-elevated border border-border-default text-text-secondary font-bold rounded-2xl hover:bg-surface-hover hover:border-border-hover transition-all duration-300"
+        >
+          <FileText size={18} strokeWidth={1.75} />
+          <span className="uppercase tracking-[0.15em] text-[11px]">{t.exportCaseFile}</span>
         </button>
       </footer>
     </div>

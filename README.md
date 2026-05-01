@@ -8,7 +8,7 @@
 
 ---
 
-### [ Ελληνικά ](#ελληνικά) | [ English ](#english) | [ Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release)
+### [ Ελληνικά ](#ελληνικά) | [ English ](#english) | [ Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release) | [ V3 Changelog ](CHANGELOG_V3.md)
 
 ---
 
@@ -26,16 +26,17 @@
 
 ---
 
-## Technical Architecture
+## Technical Architecture V3
 
-Ο μηχανισμός ανάλυσης "ξεκοιλιάζει" τον κώδικα μέσω AST (Abstract Syntax Tree) και στατιστικών μοντέλων:
+Ο μηχανισμός ανάλυσης V3 "ξεκοιλιάζει" τον κώδικα μέσω AST (Abstract Syntax Tree), αλγορίθμων Jaccard και στατιστικής εντροπίας:
 
 | Pillar | Description | Detection Logic |
 | :--- | :--- | :--- |
-| **Structural Analysis** | Σκελετός Λογικής | Εντοπισμός LLM-isms στη δομή και την ιεραρχία. |
-| **Comment Analysis** | Πιστότητα Ύφους | Αξιολόγηση πυκνότητας, ύφους και "robotic" ευγένειας. |
-| **Statistical Entropy** | Προβλεψιμότητα | Μέτρηση της στατιστικής εντροπίας (το AI είναι υπερβολικά ομοιόμορφο). |
-| **Naming Conventions** | Μηχανική Ονοματολογία | Ανίχνευση ονομάτων που παράγονται από heuristics μηχανών. |
+| **Robotic Uniformity** | Δομική Ομοιομορφία | Χρήση **Jaccard Similarity** για εντοπισμό "factory-made" δομών κώδικα. |
+| **Statistical Entropy** | Προβλεψιμότητα | Μέτρηση της στατιστικής εντροπίας (ο άνθρωπος εισάγει "θόρυβο", το AI είναι flat). |
+| **Template Integrity** | Πιστότητα Προτύπου | Έλεγχος αν ο χρήστης τήρησε τις προδιαγραφές ή αν "δανείστηκε" έτοιμο AI σκελετό. |
+| **Comment Analysis** | Πιστότητα Ύφους | Αξιολόγηση "GPT-style" ευγένειας και εγκυκλοπαιδικής φλυαρίας. |
+| **Naming Conventions** | Μηχανική Ονοματολογία | Ανίχνευση ονομάτων που παράγονται από στατιστικά heuristics μηχανών. |
 
 ---
 
@@ -50,6 +51,16 @@ Reviewing code presented as "academic standard" revealed a clear lack of "human 
 - **Mechanical Structure:** "Soulless" organization mirroring default LLM outputs.
 
 Verified through local LLM testing (Proxmox stack), the verdict was clear: **High-dose AI Slop.** This tool converts gut feelings into **concrete metrics**.
+
+---
+
+## Key Features V3
+
+- **Entropy-Driven Detection:** High-precision analysis based on information entropy.
+- **Batch Audit:** Scan entire directories recursively to detect project-wide AI patterns.
+- **Mentor Panel:** Interactive code inspection with live AI-pattern explanations.
+- **100% Offline:** Embedded analysis engine (sidecar) for maximum privacy.
+- **Industrial Dashboard:** Professional radar charts and animated forensic summaries.
 
 ---
 
@@ -79,7 +90,7 @@ Latest stable binaries are available in the [Releases](https://github.com/christ
 ```bash
 [FAIL] Slop Score: 98.3%
 [!] Pillar: Robotic Uniformity (93.3)
-[!] Finding: Architecture Overkill detected.
+[!] Finding: Jaccard Cluster Overlap detected (>0.9).
 [STATUS] High Risk: AI-Generated Slop.
 ```
 

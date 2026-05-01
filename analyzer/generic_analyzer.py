@@ -1,6 +1,6 @@
 import re
 from typing import List
-from models import Finding
+from analyzer.models import Finding
 
 class GenericAnalyzer:
     """

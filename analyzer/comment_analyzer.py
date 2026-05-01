@@ -1,7 +1,7 @@
 import tree_sitter_language_pack
 from tree_sitter import Tree, Query, QueryCursor
-from base import BaseAnalyzer
-from models import Finding
+from analyzer.base import BaseAnalyzer
+from analyzer.models import Finding
 from typing import List
 import re
 
@@ -57,18 +57,25 @@ class CommentAnalyzer(BaseAnalyzer):
         code_lines = code_str.splitlines()
         
         cursor = QueryCursor(self.comment_query)
-        captures = cursor.captures(tree.root_node)
+        raw_captures = cursor.captures(tree.root_node)
         all_nodes = []
         seen_nodes = set()
         
-        for capture in captures:
-            node = capture[0]
-            tag_val = capture[1]
-            tag = self.comment_query.capture_names[tag_val] if isinstance(tag_val, int) else tag_val
-            
-            if tag in ["comment", "docstring"] and node.id not in seen_nodes:
-                all_nodes.append(node)
-                seen_nodes.add(node.id)
+        # Normalize captures
+        if isinstance(raw_captures, list):
+            captures = {}
+            for node, tag in raw_captures:
+                if tag not in captures: captures[tag] = []
+                captures[tag].append(node)
+        else:
+            captures = raw_captures
+
+        for tag, nodes in captures.items():
+            if tag in ["comment", "docstring"]:
+                for node in nodes:
+                    if node.id not in seen_nodes:
+                        all_nodes.append(node)
+                        seen_nodes.add(node.id)
         
         for node in all_nodes:
             comment_raw = node.text.decode('utf8', errors='ignore').strip()
@@ -98,9 +105,9 @@ class CommentAnalyzer(BaseAnalyzer):
                     line=node.start_point[0] + 1,
                     severity=2.5,
                     confidence=0.9,
-                    message=f"GPT-Style Παπατζιλίκι: Εντοπίστηκε η φράση '{found_phrase}'.",
-                    human_alternative="Αφαιρέστε τις τυπικές φράσεις εισαγωγής / επεξήγησης. Γράψτε πιο άμεσα.",
-                    rationale="Τα AI συχνά χρησιμοποιούν τυποποιημένες 'ευγενικές' ή 'επαγγελματικές' φράσεις που προδίδουν την προέλευσή τους."
+                    message=f"GPT-Style Παπατζιλίκι (Phrase: '{found_phrase}')",
+                    human_alternative="Αφαίρεσε τις 'ευγενικές' εισαγωγές. Αντί για 'This function calculates...', πες απλά '# Υπολογισμός ΦΠΑ'. Ο κώδικας δεν είναι έκθεση ιδεών, είναι εργαλείο.",
+                    rationale="Τα AI έχουν εκπαιδευτεί να είναι υπερβολικά ευγενικά και επεξηγηματικά. Φράσεις όπως 'This function handles...' ή 'The purpose of...' είναι κλασικά γεμίσματα (filler phrases) που ένας άνθρωπος σπάνια γράφει."
                 ))
                 continue
 
@@ -127,9 +134,9 @@ class CommentAnalyzer(BaseAnalyzer):
                                 line=node.start_point[0] + 1,
                                 severity=1.2,
                                 confidence=0.8,
-                                message="Το σχόλιο περιγράφει το αυτονόητο syntax.",
-                                human_alternative="Αφαιρέστε σχόλια που απλώς μεταφράζουν τον κώδικα. Κρατήστε μόνο το 'γιατί'.",
-                                rationale="Το AI τείνει να σχολιάζει κάθε γραμμή περιγράφοντας την πράξη (π.χ. 'αυξάνει το x') και όχι την πρόθεση."
+                                message="Syntax Translator (Obvious Comment)",
+                                human_alternative="Μην εξηγείς τι κάνει η γλώσσα προγραμματισμού (π.χ. 'αυξάνει το x'). Εξήγησε το *γιατί* χρειάζεται αυτή η αύξηση στο συγκεκριμένο σενάριο.",
+                                rationale="Είναι το κλασικό 'AI verbosity': το AI μεταφράζει κάθε γραμμή κώδικα σε απλά αγγλικά/ελληνικά. Ένας προγραμματιστής ξέρει τι κάνει το `x += 1`, δεν χρειάζεται να του το πεις."
                             ))
                             continue
 
@@ -162,9 +169,9 @@ class CommentAnalyzer(BaseAnalyzer):
                         line=node.start_point[0] + 1,
                         severity=2.0,
                         confidence=0.7,
-                        message="Υπερβολική φλυαρία / Θεωρητική ανάλυση.",
-                        human_alternative="Συνοψίστε τη θεωρία ή αφαιρέστε την. Κρατήστε το σχόλιο εστιασμένο στον κώδικα.",
-                        rationale="Wikipedia-style εξηγήσεις είναι σήμα κατατεθέν της 'AI φλυαρίας' (Slop)."
+                        message="Wikipedia-Style Slop (Verbiage)",
+                        human_alternative="Συνοψίστε τη θεωρία ή αφαίρεσέ την τελείως. Ο κώδικας πρέπει να είναι αυτο-επεξηγηματικός. Αν χρειάζεται Wikipedia για να τον καταλάβουμε, κάτι πάει λάθος.",
+                        rationale="Τα LLMs συχνά κάνουν 'κήρυγμα' μέσα στα σχόλια, εξηγώντας ολόκληρες θεωρίες ή βέλτιστες πρακτικές. Αυτό ονομάζεται Statistical Verbiage και είναι σήμα κατατεθέν του AI Slop."
                     ))
                 continue
 

@@ -26,19 +26,13 @@ def test_ai_signature(parser, analyzer):
     ''').strip().encode('utf8')
     tree = parser.parse(code)
     findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("AI-style Signature" in f.message for f in findings)
+    assert any("suspicion.boilerplate_density" in f.type for f in findings)
 
-def test_textbook_pattern(parser, analyzer):
-    code = b"def bubbleSort(arr): pass"
+def test_ai_filler(parser, analyzer):
+    code = b"# As an AI language model, here is the solution\ndef run(): pass"
     tree = parser.parse(code)
     findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("Textbook Bubble Sort" in f.message for f in findings)
-
-def test_generic_error_handling(parser, analyzer):
-    code = b"try: pass\nexcept Exception as e: print(f'Error: {e}')"
-    tree = parser.parse(code)
-    findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("Generic Error Handling" in f.message for f in findings)
+    assert any("suspicion.ai_filler" in f.type for f in findings)
 
 def test_clean_suspicion(parser, analyzer):
     code = b"def add(a, b):\n    return a + b\n\ndef sort_list(my_list):\n    my_list.sort()"

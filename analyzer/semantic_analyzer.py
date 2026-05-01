@@ -2,8 +2,8 @@ import math
 import re
 from typing import List, Dict, Set
 from tree_sitter import Tree
-from base import BaseAnalyzer
-from models import Finding
+from analyzer.base import BaseAnalyzer
+from analyzer.models import Finding
 
 class SemanticAnalyzer(BaseAnalyzer):
     def __init__(self, language_id: str):

@@ -749,8 +749,19 @@ fi
             try:
                 shutil.copy2(exe_path, target_path)
                 self.append_log("build", f"[SYSTEM] Το αρχείο αντιγράφηκε στο root: {target_path}\n")
+                
+                # --- ΣΥΓΧΡΟΝΙΣΜΟΣ ΜΕ TAURI SIDECAR ---
+                if name == "Engine":
+                    tauri_bin_dir = os.path.join(project_root, "src-tauri", "binaries")
+                    os.makedirs(tauri_bin_dir, exist_ok=True)
+                    # Το Tauri περιμένει συγκεκριμένο όνομα για το sidecar (target-triple)
+                    tauri_sidecar = os.path.join(tauri_bin_dir, "slop-engine-x86_64-pc-windows-msvc.exe")
+                    shutil.copy2(exe_path, tauri_sidecar)
+                    self.append_log("build", "<b>[SYNC] Ο Engine ενημερώθηκε στον φάκελο του Tauri!</b>\n")
+                    self.append_log("build", "<i>Σημείωση: Κάντε επανεκκίνηση (Stop & Launch) για να εφαρμοστούν οι αλλαγές στο GUI.</i>\n")
+            
             except Exception as e:
-                self.append_log("build", f"[ERROR] Αδυναμία αντιγραφής στο root: {e}\n")
+                self.append_log("build", f"[ERROR] Αδυναμία αντιγραφής: {e}\n")
 
             self.lbl_main_status.setText(f"{name} Ready!")
         else:

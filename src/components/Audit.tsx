@@ -12,15 +12,23 @@ interface AuditResult {
   result: AnalysisResult | null;
   status: 'pending' | 'analyzing' | 'done' | 'error';
   error?: string;
+  code?: string;
 }
 
 import { Language, translations } from '../lib/i18n';
 
 export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
   const t = translations[lang];
-  const [results, setResults] = useState<AuditResult[]>([]);
-  const [isAuditing, setIsAuditing] = useState(false);
-  const { setAnalysisResult, setView, addToast } = useAppStore();
+  const { 
+    setAnalysisResult, 
+    setView, 
+    addToast, 
+    setAnalyzedCode,
+    auditResults: results,
+    setAuditResults: setResults,
+    isAuditing,
+    setIsAuditing
+  } = useAppStore();
 
   /* Αναδρομική σάρωση φακέλου */
   const scanDirectory = async (path: string): Promise<string[]> => {
@@ -84,7 +92,7 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             });
             const analysis = JSON.parse(rawResult);
             
-            setResults(prev => prev.map((r, idx) => i === idx ? { ...r, status: 'done', result: analysis } : r));
+            setResults(prev => prev.map((r, idx) => i === idx ? { ...r, status: 'done', result: analysis, code: content } : r));
           } catch (err) {
             console.error(`Audit failed for ${initialResults[i].path}:`, err);
             setResults(prev => prev.map((r, idx) => i === idx ? { ...r, status: 'error', error: String(err) } : r));
@@ -100,40 +108,67 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     }
   };
 
-  const viewDetails = (result: AnalysisResult) => {
-    setAnalysisResult(result);
+  const viewDetails = (res: AuditResult) => {
+    if (res.result) setAnalysisResult(res.result);
+    if (res.code) setAnalyzedCode(res.code);
     setView('dashboard');
   };
 
+  const inspectCode = async (res: AuditResult) => {
+    // Check if we already have the code in cache
+    if (res.code && res.result) {
+      setAnalyzedCode(res.code);
+      setAnalysisResult(res.result);
+      setView('analyzer');
+    } else {
+      // Fallback: Read from disk if missing
+      try {
+        const content = await readTextFile(res.path);
+        setAnalyzedCode(content);
+        if (res.result) setAnalysisResult(res.result);
+        setView('analyzer');
+      } catch (err) {
+        console.error("Failed to read file for inspection:", err);
+        addToast(lang === 'EL' ? 'Αποτυχία φόρτωσης αρχείου' : 'Failed to load file', 'error');
+        // Still go to analyzer to show error state if result exists
+        if (res.result) {
+          setAnalysisResult(res.result);
+          setView('analyzer');
+        }
+      }
+    }
+  };
+
   /* Υπολογισμός μέσου score */
-  const doneResults = results.filter(r => r.status === 'done' && r.result);
+  const resultsArray = Array.isArray(results) ? results : [];
+  const doneResults = resultsArray.filter(r => r.status === 'done' && r.result);
   const avgScore = doneResults.length > 0 
     ? Math.round(doneResults.reduce((sum, r) => sum + (r.result?.final_score || 0), 0) / doneResults.length)
     : null;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-20">
+    <div className="p-4 md:p-6 max-w-[1400px] mx-auto w-full space-y-8 pb-16">
       
       {/* ═══ Header ═══ */}
-      <section className="flex flex-col items-center text-center space-y-6 py-12 bg-surface rounded-[2rem] border border-white/[0.04] relative overflow-hidden anim-scale-in">
+      <section className="flex flex-col items-center text-center space-y-5 py-8 md:py-10 bg-surface rounded-[2rem] border border-border-subtle relative overflow-hidden anim-scale-in">
         <div className="absolute inset-0 bg-noise" />
         
         <div className="p-4 bg-accent-primary/[0.08] rounded-2xl border border-accent-primary/[0.12] relative z-10">
-          <Search className="text-accent-primary" size={36} strokeWidth={1.8} />
+          <Search className="text-accent-primary" size={36} strokeWidth={1.75} />
         </div>
         <div className="space-y-2 relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">Batch Audit</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary">Batch Audit</h1>
           <p className="text-text-secondary max-w-md mx-auto text-sm leading-relaxed font-medium">
             {t.auditTagline}
           </p>
         </div>
 
         {/* CTA ή Progress summary */}
-        <div className="pt-2 z-10">
-          {!isAuditing && results.length === 0 && (
+        <div className="pt-1.5 z-10">
+          {!isAuditing && resultsArray.length === 0 && (
             <button 
               onClick={handlePickDirectory}
-              className="flex items-center space-x-3 px-8 py-3.5 bg-accent-primary text-bg font-bold rounded-2xl hover:scale-[1.03] transition-all duration-300 shadow-lg shadow-accent-primary/20"
+              className="flex items-center space-x-3 px-8 py-3.5 bg-accent-primary text-white font-bold rounded-2xl hover:scale-[1.03] transition-all duration-300 shadow-lg shadow-accent-primary/20"
             >
               <FolderOpen size={18} />
               <span className="uppercase tracking-[0.15em] text-[11px]">{t.pickFolder}</span>
@@ -145,20 +180,20 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             <div className="flex items-center space-x-6 anim-fade-in">
               <div className="flex items-center space-x-2">
                 <BarChart3 size={16} className="text-accent-primary" />
-                <span className="text-sm font-mono font-bold text-white">{t.avgScore}: {avgScore}</span>
+                <span className="text-sm font-mono font-bold text-text-primary">{t.avgScore}: {avgScore}</span>
               </div>
               <span className="text-text-disabled">·</span>
-              <span className="text-xs text-text-secondary font-medium">{doneResults.length} / {results.length} {t.files}</span>
+              <span className="text-xs text-text-secondary font-medium">{doneResults.length} / {resultsArray.length} {t.files}</span>
             </div>
           )}
         </div>
       </section>
 
       {/* ═══ Results Table ═══ */}
-      {results.length > 0 && (
-        <div className="bg-surface rounded-2xl border border-white/[0.04] overflow-hidden anim-slide-up anim-delay-200">
-          <div className="p-5 border-b border-white/[0.04] flex items-center justify-between bg-white/[0.01]">
-            <h3 className="text-sm font-bold text-white">{t.results} ({results.length} {t.files})</h3>
+      {resultsArray.length > 0 && (
+        <div className="bg-surface rounded-2xl border border-border-subtle overflow-hidden anim-slide-up anim-delay-200">
+          <div className="p-4 border-b border-border-subtle flex items-center justify-between bg-surface-elevated/40">
+            <h3 className="text-sm font-bold text-text-primary">{t.results} ({resultsArray.length} {t.files})</h3>
             {isAuditing && (
               <div className="flex items-center space-x-2 text-accent-primary">
                 <Loader2 size={14} className="animate-spin" />
@@ -169,54 +204,64 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-[9px] uppercase font-bold tracking-[0.2em] text-text-disabled border-b border-white/[0.04]">
-                  <th className="px-5 py-3">{t.tableFile}</th>
-                  <th className="px-5 py-3">{t.tableStatus}</th>
-                  <th className="px-5 py-3 text-center">{t.tableScore}</th>
-                  <th className="px-5 py-3 text-center">{t.tableFindings}</th>
-                  <th className="px-5 py-3 text-right">{t.tableAction}</th>
+                <tr className="text-[9px] uppercase font-bold tracking-[0.2em] text-text-disabled border-b border-border-subtle">
+                  <th className="px-5 py-2.5">{t.tableFile}</th>
+                  <th className="px-5 py-2.5">{t.tableStatus}</th>
+                  <th className="px-5 py-2.5 text-center">{t.tableScore}</th>
+                  <th className="px-5 py-2.5 text-center">{t.tableFindings}</th>
+                  <th className="px-5 py-2.5 text-right">{t.tableAction}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.03]">
-                {results.map((res, i) => (
-                  <tr key={i} className="hover:bg-white/[0.015] transition-colors duration-200 group">
-                    <td className="px-5 py-3.5">
+              <tbody className="divide-y divide-border-subtle/50">
+                {resultsArray.map((res, i) => (
+                  <tr key={i} className="hover:bg-surface-hover/30 transition-colors duration-200 group">
+                    <td className="px-5 py-3">
                       <div className="flex items-center space-x-3">
                         <FileCode size={16} className="text-text-disabled shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-white truncate">{res.name}</p>
+                          <p className="text-sm font-bold text-text-primary truncate">{res.name}</p>
                           <p className="text-[10px] text-text-disabled truncate max-w-xs">{res.path}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-5 py-3">
                       {res.status === 'analyzing' && <span className="text-[10px] text-accent-primary font-bold animate-pulse uppercase">{t.statusAnalyzing}</span>}
                       {res.status === 'done' && <CheckCircle2 size={16} className="text-human" />}
                       {res.status === 'error' && <AlertCircle size={16} className="text-slop" />}
                       {res.status === 'pending' && <span className="text-[10px] text-text-disabled font-medium uppercase">{t.statusPending}</span>}
                     </td>
-                    <td className="px-5 py-3.5 text-center">
+                    <td className="px-5 py-3 text-center">
                       {res.result && (
                         <span className="text-base font-mono font-bold" style={{ color: res.result.final_score > 50 ? 'var(--slop)' : 'var(--human)' }}>
                           {Math.round(res.result.final_score)}
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-center">
+                    <td className="px-5 py-3 text-center">
                       {res.result && (
-                        <span className="px-2 py-0.5 bg-white/[0.03] rounded text-xs font-mono font-bold text-text-secondary border border-white/[0.04]">
+                        <span className="px-2 py-0.5 bg-surface-elevated/60 rounded text-xs font-mono font-bold text-text-secondary border border-border-subtle">
                           {res.result.pillars.reduce((acc, p) => acc + p.findings.length, 0)}
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3 text-right">
                       {res.result && (
-                        <button 
-                          onClick={() => viewDetails(res.result!)}
-                          className="p-2 hover:bg-accent-primary/[0.08] rounded-lg text-accent-primary transition-all duration-200 opacity-0 group-hover:opacity-100"
-                        >
-                          <ArrowRight size={16} />
-                        </button>
+                        <div className="flex items-center justify-end space-x-1">
+                          <button 
+                            onClick={() => inspectCode(res)}
+                            className="p-2 hover:bg-accent-primary/[0.08] rounded-lg text-accent-primary transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            title="Inspect Code"
+                          >
+                            <FileCode size={16} />
+                          </button>
+                          <button 
+                            onClick={() => viewDetails(res)}
+                            className="p-2 hover:bg-accent-primary/[0.08] rounded-lg text-accent-primary transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            title="View Report"
+                          >
+                            <ArrowRight size={16} />
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

@@ -21,12 +21,12 @@ export default {
         'text-primary': 'var(--text-primary)',
         'text-secondary': 'var(--text-secondary)',
         'text-disabled': 'var(--text-disabled)',
-      },
-      borderColor: {
-        'subtle': 'var(--border-subtle)',
-        'default': 'var(--border-default)',
-        'hover': 'var(--border-hover)',
-        'active': 'var(--border-active)',
+        border: {
+          subtle: 'var(--border-subtle)',
+          default: 'var(--border-default)',
+          hover: 'var(--border-hover)',
+          active: 'var(--border-active)',
+        },
       },
       boxShadow: {
         'soft': 'var(--shadow-soft)',

@@ -23,6 +23,7 @@ struct SlopRequest {
     content: String,
     language: String,
     file_path: String,
+    template: Option<String>,
     settings: SlopSettings,
 }
 
@@ -32,12 +33,10 @@ const SIDECAR_BYTES: &[u8] = include_bytes!("../binaries/slop-engine-x86_64-pc-w
 #[cfg(target_os = "windows")]
 fn extract_sidecar() -> Result<PathBuf, String> {
     let mut path = env::temp_dir();
-    path.push("papatzis_engine_v1.4.1_embedded.exe");
+    path.push("papatzis_engine_v3.8.0_embedded.exe");
     
-    // Only write if it doesn't exist or is empty
-    if !path.exists() || fs::metadata(&path).map(|m| m.len()).unwrap_or(0) == 0 {
-        fs::write(&path, SIDECAR_BYTES).map_err(|e| format!("Failed to extract engine: {}", e))?;
-    }
+    // Always overwrite — ensures the latest engine is used after rebuilds
+    fs::write(&path, SIDECAR_BYTES).map_err(|e| format!("Failed to extract engine: {}", e))?;
     
     Ok(path)
 }
@@ -48,7 +47,7 @@ fn extract_sidecar() -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-fn analyze_code(code: String, language: String, settings: SlopSettings) -> Result<String, String> {
+fn analyze_code(code: String, language: String, template: Option<String>, settings: SlopSettings) -> Result<String, String> {
     let sidecar_path = extract_sidecar()?;
 
     #[cfg(target_os = "windows")]
@@ -73,6 +72,7 @@ fn analyze_code(code: String, language: String, settings: SlopSettings) -> Resul
         content: code,
         language,
         file_path: "editor".into(),
+        template,
         settings,
     };
     let json_req = serde_json::to_string(&request).unwrap();

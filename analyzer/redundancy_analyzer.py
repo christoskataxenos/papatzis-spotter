@@ -1,7 +1,7 @@
 import tree_sitter_language_pack
 from tree_sitter import Tree, Query, QueryCursor
-from base import BaseAnalyzer
-from models import Finding
+from analyzer.base import BaseAnalyzer
+from analyzer.models import Finding
 from typing import List
 
 class RedundancyAnalyzer(BaseAnalyzer):
@@ -50,7 +50,12 @@ class RedundancyAnalyzer(BaseAnalyzer):
         self.clear()
         
         # 1. Ανίχνευση μη προσβάσιμου κώδικα (Unreachable Code)
-        captures = self.unreachable_cursor.captures(tree.root_node)
+        raw_captures = self.unreachable_cursor.captures(tree.root_node)
+        if isinstance(raw_captures, list):
+            captures = {"unreachable": [n for n, t in raw_captures if t == "unreachable"]}
+        else:
+            captures = raw_captures
+
         # Χρησιμοποιούμε set για να αποφύγουμε πολλαπλά findings για το ίδιο block
         unreachable_nodes = set()
         for node in captures.get("unreachable", []):
@@ -68,8 +73,13 @@ class RedundancyAnalyzer(BaseAnalyzer):
                 ))
 
         # 2. Ανίχνευση Over-abstraction (Single-method classes)
-        if self.single_method_class_cursor:
-            captures = self.single_method_class_cursor.captures(tree.root_node)
+        if self.single_method_class_query:
+            self.single_method_class_cursor = QueryCursor(self.single_method_class_query)
+            raw_captures = self.single_method_class_cursor.captures(tree.root_node)
+            if isinstance(raw_captures, list):
+                captures = {"class_def": [n for n, t in raw_captures if t == "class_def"]}
+            else:
+                captures = raw_captures
             # Εδώ θέλουμε να δούμε αν η κλάση έχει ΜΟΝΟ μία μέθοδο (εκτός __init__)
             # Η tree-sitter Query API για "μόνο μία" είναι λίγο περιορισμένη, οπότε θα κάνουμε post-processing
             class_nodes = captures.get("class_def", [])

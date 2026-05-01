@@ -1,17 +1,28 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
-
-hidden_imports = ['tree_sitter', 'pydantic']
-hidden_imports += collect_submodules('tree_sitter_language_pack')
-data_files = collect_data_files('tree_sitter_language_pack')
-
 a = Analysis(
     ['analyzer/slop_engine.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
-    datas=data_files,
-    hiddenimports=hidden_imports,
+    datas=[],
+    hiddenimports=[
+        'tree_sitter', 
+        'tree_sitter_language_pack', 
+        'pydantic',
+        'analyzer.logic_analyzer',
+        'analyzer.naming_analyzer',
+        'analyzer.similarity_analyzer',
+        'analyzer.structural_analyzer',
+        'analyzer.comment_analyzer',
+        'analyzer.redundancy_analyzer',
+        'analyzer.statistical_analyzer',
+        'analyzer.semantic_analyzer',
+        'analyzer.scoring_engine',
+        'analyzer.suspicion_analyzer',
+        'analyzer.integrity_analyzer',
+        'analyzer.models',
+        'analyzer.base'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

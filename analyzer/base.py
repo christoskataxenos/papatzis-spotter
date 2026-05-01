@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from tree_sitter import Tree
-from models import Finding
+from analyzer.models import Finding
 
 class BaseAnalyzer(ABC):
     def __init__(self, language: str):

@@ -1,7 +1,7 @@
 import tree_sitter_language_pack
 from tree_sitter import Tree, Query, QueryCursor, Node
-from base import BaseAnalyzer
-from models import Finding
+from analyzer.base import BaseAnalyzer
+from analyzer.models import Finding
 from typing import List, Dict
 import math
 
@@ -98,69 +98,77 @@ class StructuralAnalyzer(BaseAnalyzer):
         for child in node.children:
             self._get_node_counts(child, counts)
 
+    def _normalize_captures(self, raw_captures):
+        if isinstance(raw_captures, list):
+            captures = {}
+            for node, tag in raw_captures:
+                if tag not in captures: captures[tag] = []
+                captures[tag].append(node)
+            return captures
+        return raw_captures
+
     def analyze(self, tree: Tree, source_code: bytes, file_path: str) -> List[Finding]:
         self.clear()
         
         # 1. Detect Redundant If-Returns
         cursor = QueryCursor(self.redundant_if_query)
-        captures = cursor.captures(tree.root_node)
-        for capture in captures:
-            node = capture[0]
-            tag_val = capture[1]
-            tag = self.redundant_if_query.capture_names[tag_val] if isinstance(tag_val, int) else tag_val
-            
+        captures = self._normalize_captures(cursor.captures(tree.root_node))
+        for tag, nodes in captures.items():
             if tag == "redundant_if":
-                self.findings.append(Finding(
-                    type="structural.redundant_if",
-                    file=file_path,
-                    line=node.start_point[0] + 1,
-                    severity=0.5,
-                    confidence=1.0,
-                    message="Redundant If-Return: Μπορεί να αντικατασταθεί με ένα απλό return της συνθήκης.",
-                    human_alternative="Χρησιμοποιήστε 'return condition' αντί για if/else return True/False.",
-                    rationale="Το AI συχνά γράφει υπερβολικά αναλυτικό κώδικα (verbose) για απλές λογικές πράξεις."
-                ))
+                for node in nodes:
+                    self.findings.append(Finding(
+                        type="structural.redundant_if",
+                        file=file_path,
+                        line=node.start_point[0] + 1,
+                        severity=0.5,
+                        confidence=1.0,
+                        message="Redundant If-Return (Verbose Logic)",
+                        human_alternative="Αντικατάστησε το if/else με ένα άμεσο `return condition`. Για παράδειγμα: `return x > 5` αντί για `if x > 5: return True else: return False`.",
+                        rationale="Το AI έχει την τάση να είναι υπερβολικά αναλυτικό (verbose) για να φαίνεται επεξηγηματικό. Ένας έμπειρος προγραμματιστής προτιμά την κομψότητα και την αποφυγή περιττών διακλαδώσεων."
+                    ))
 
         # 2. Detect Unnecessary Wrappers (Proxy functions)
         cursor = QueryCursor(self.unnecessary_wrapper_query)
-        captures = cursor.captures(tree.root_node)
-        for capture in captures:
-            node = capture[0]
-            tag_val = capture[1]
-            tag = self.unnecessary_wrapper_query.capture_names[tag_val] if isinstance(tag_val, int) else tag_val
-            
+        captures = self._normalize_captures(cursor.captures(tree.root_node))
+        for tag, nodes in captures.items():
             if tag == "wrapper":
-                self.findings.append(Finding(
-                    type="structural.proxy_function",
-                    file=file_path,
-                    line=node.start_point[0] + 1,
-                    severity=0.4,
-                    confidence=0.7,
-                    message="Unnecessary Wrapper: Συνάρτηση που απλώς καλεί μια άλλη χωρίς πρόσθετη λογική.",
-                    human_alternative="Αποφύγετε τα περιττά επίπεδα indirection αν δεν προσφέρουν abstraction.",
-                    rationale="Τα LLMs μερικές φορές δημιουργούν περιττά 'στρώματα' κώδικα που δεν εξυπηρετούν κανέναν σκοπό."
-                ))
+                for node in nodes:
+                    # Verify it only has ONE statement in the body to avoid false positives
+                    body_node = node.child_by_field_name('body')
+                    if body_node:
+                        # Count named children (actual statements)
+                        statements = [c for c in body_node.children if c.is_named]
+                        if len(statements) != 1:
+                            continue
+                            
+                    self.findings.append(Finding(
+                        type="structural.proxy_function",
+                        file=file_path,
+                        line=node.start_point[0] + 1,
+                        severity=0.4,
+                        confidence=0.7,
+                        message="Empty Proxy Function (Wrapper Slop)",
+                        human_alternative="Αν η συνάρτηση δεν προσθέτει κάποιο abstraction ή business logic, αφαίρεσέ την και κάλεσε απευθείας την εσωτερική συνάρτηση.",
+                        rationale="Τα LLMs μερικές φορές δημιουργούν 'άδειες' συναρτήσεις-περιτυλίγματα που απλώς πασάρουν δεδομένα. Αυτό προσθέτει περιττή πολυπλοκότητα χωρίς κανένα όφελος."
+                    ))
 
         # 3. GPT Error Handling Template Matching
         if self.gpt_error_query:
             cursor = QueryCursor(self.gpt_error_query)
-            captures = cursor.captures(tree.root_node)
-            for capture in captures:
-                node = capture[0]
-                tag_val = capture[1]
-                tag = self.gpt_error_query.capture_names[tag_val] if isinstance(tag_val, int) else tag_val
-                
+            captures = self._normalize_captures(cursor.captures(tree.root_node))
+            for tag, nodes in captures.items():
                 if tag == "gpt_error":
-                    self.findings.append(Finding(
-                        type="structural.gpt_error_pattern",
-                        file=file_path,
-                        line=node.start_point[0] + 1,
-                        severity=0.6,
-                        confidence=0.8,
-                        message="Standard AI Error Handling: Εντοπίστηκε το κλασικό GPT pattern (try/except print error).",
-                        human_alternative="Χρησιμοποιήστε logging ή πιο συγκεκριμένη διαχείριση σφαλμάτων.",
-                        rationale="Τα LLMs χρησιμοποιούν συστηματικά το ίδιο template για exception handling αν δεν τους ζητηθεί κάτι άλλο."
-                    ))
+                    for node in nodes:
+                        self.findings.append(Finding(
+                            type="structural.gpt_error_pattern",
+                            file=file_path,
+                            line=node.start_point[0] + 1,
+                            severity=0.6,
+                            confidence=0.8,
+                            message="Standard AI Error Handling Template",
+                            human_alternative="Μην μένεις στο `print(e)`. Χρησιμοποίησε ένα σωστό `logger`, σήκωσε ένα custom exception ή πρόσθεσε ουσιαστικό error recovery.",
+                            rationale="Το `try: ... except Exception as e: print(e)` είναι η 'εύκολη λύση' που δίνει το AI αν δεν του δώσεις οδηγίες. Σε επαγγελματικό κώδικα, η διαχείριση σφαλμάτων πρέπει να είναι στοχευμένη."
+                        ))
 
         # 4. Depth Variance Metric (1.2)
         depths = self._get_node_depths(tree.root_node)

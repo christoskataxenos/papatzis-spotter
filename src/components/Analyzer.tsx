@@ -3,7 +3,7 @@ import Editor, { OnMount } from '@monaco-editor/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore } from '../store/useAppStore';
 import { Finding } from '../types/analysis';
-import { AEGEAN_DARK_THEME, AEGEAN_EDITOR_OPTIONS } from '../lib/monacoTheme';
+import { AEGEAN_DARK_THEME, AEGEAN_LIGHT_THEME, AEGEAN_EDITOR_OPTIONS } from '../lib/monacoTheme';
 import { 
   Play, 
   AlertCircle,
@@ -11,29 +11,191 @@ import {
   CheckCircle2,
   ShieldAlert,
   Loader2,
-  Sparkles
+  Sparkles,
+  Search,
+  ArrowRight,
+  Zap,
+  AlignLeft,
+  MessageSquare,
+  BarChart3,
+  RotateCcw,
+  LayoutTemplate,
+  RefreshCcw
 } from 'lucide-react';
 
 import { Language, translations } from '../lib/i18n';
 
+/* ─── Pillar Icon Helper ─── */
+const PillarIcon = ({ name }: { name: string }) => {
+  const size = 14;
+  const strokeWidth = 1.75;
+  switch (name) {
+    case 'AST_UNIFORMITY': return <AlignLeft size={size} strokeWidth={strokeWidth} />;
+    case 'NAMING': return <Zap size={size} strokeWidth={strokeWidth} />;
+    case 'STATISTICAL': return <BarChart3 size={size} strokeWidth={strokeWidth} />;
+    case 'COMMENTS': return <MessageSquare size={size} strokeWidth={strokeWidth} />;
+    case 'DRIFT': return <RotateCcw size={size} strokeWidth={strokeWidth} />;
+    case 'INTEGRITY': return <LayoutTemplate size={size} strokeWidth={strokeWidth} />;
+    default: return <Zap size={size} strokeWidth={strokeWidth} />;
+  }
+};
+
+const getPillarColorVar = (name: string) => {
+  switch (name) {
+    case 'AST_UNIFORMITY': return 'var(--pillar-structure)';
+    case 'NAMING': return 'var(--pillar-naming)';
+    case 'STATISTICAL': return 'var(--pillar-stat)';
+    case 'COMMENTS': return 'var(--pillar-gpt)';
+    case 'DRIFT': return 'var(--pillar-drift)';
+    case 'INTEGRITY': return 'var(--pillar-template)';
+    default: return 'var(--accent-primary)';
+  }
+};
+
+/* ─── Finding Grouping Helper ─── */
+interface GroupedFinding {
+  type: string;
+  displayType: string;
+  messages: Array<{
+    text: string;
+    findings: Finding[];
+  }>;
+}
+
+const groupFindingsIntelligently = (findings: Finding[], lang: Language): GroupedFinding[] => {
+  const groups: Record<string, GroupedFinding> = {};
+  
+  findings.forEach(f => {
+    // Determine the main type (e.g. 'naming' from 'naming.lazy')
+    const mainType = f.type.split('.')[0] || 'other';
+    const displayType = mainType.charAt(0).toUpperCase() + mainType.slice(1);
+    
+    if (!groups[mainType]) {
+      groups[mainType] = { type: mainType, displayType, messages: [] };
+    }
+    
+    let msgGroup = groups[mainType].messages.find(m => m.text === f.message);
+    if (!msgGroup) {
+      msgGroup = { text: f.message, findings: [] };
+      groups[mainType].messages.push(msgGroup);
+    }
+    msgGroup.findings.push(f);
+  });
+  
+  // Sort messages inside each group by average severity
+  Object.values(groups).forEach(g => {
+    g.messages.sort((a, b) => {
+      const sevA = a.findings.reduce((acc, f) => acc + f.severity, 0) / a.findings.length;
+      const sevB = b.findings.reduce((acc, f) => acc + f.severity, 0) / b.findings.length;
+      return sevB - sevA; // High severity first
+    });
+  });
+  
+  return Object.values(groups).sort((a, b) => {
+    // Put 'engine' or 'info' types at the bottom
+    if (a.type === 'engine' || a.type === 'info') return 1;
+    if (b.type === 'engine' || b.type === 'info') return -1;
+    
+    // Sort groups by their maximum severity finding
+    const maxSevA = Math.max(...a.messages.flatMap(m => m.findings.map(f => f.severity)));
+    const maxSevB = Math.max(...b.messages.flatMap(m => m.findings.map(f => f.severity)));
+    return maxSevB - maxSevA;
+  });
+};
+
 export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
   const t = translations[lang];
-  const [code, setCode] = useState<string>(t.analyzerPlaceholder);
-  const [language, setLanguage] = useState<string>('python');
+  const { 
+    setAnalysisResult, 
+    analysisResult, 
+    setAnalyzing, 
+    isAnalyzing, 
+    setView, 
+    addToast,
+    analyzedCode,
+    setAnalyzedCode,
+    targetLine,
+    setTargetLine,
+    templateCode,
+    setTemplateCode,
+    isTemplateMode,
+    setTemplateMode,
+    auditResults,
+    theme
+  } = useAppStore();
+
+  const [code, setCode] = useState<string>(analyzedCode || t.analyzerPlaceholder);
+  const [language, setLanguage] = useState<string>('auto');
   const [lastError, setLastError] = useState<string | null>(null);
-  const { setAnalysisResult, analysisResult, setAnalyzing, isAnalyzing, setView, addToast } = useAppStore();
   const monacoRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
+  const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
+  const [activeTab, setActiveTab] = useState<'code' | 'template'>('code');
+  const [collapsedPillars, setCollapsedPillars] = useState<Record<string, boolean>>({});
 
-  /* Monaco setup — custom Aegean theme */
+  const formatPillarName = (key: string) => {
+    if (!key) return '';
+    if (t.pillarNames[key as keyof typeof t.pillarNames]) {
+      return t.pillarNames[key as keyof typeof t.pillarNames];
+    }
+    return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  };
+
+  const togglePillar = (name: string) => {
+    setCollapsedPillars(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  /* Sync local code with store when analyzedCode changes in store (e.g. from Audit) */
+  // Synchronize internal code state with the global store's analyzedCode
+  useEffect(() => {
+    if (analyzedCode !== null && analyzedCode !== undefined) {
+      setCode(analyzedCode);
+    }
+  }, [analyzedCode]);
+
+  const forceRefresh = () => {
+    if (analyzedCode) {
+      setCode(analyzedCode);
+      addToast(lang === 'EL' ? 'Ανανέωση κώδικα επιτυχής' : 'Code refreshed successfully', 'info');
+    }
+  };
+
+  /* Scroll to targetLine when editor mounts or targetLine changes */
+  useEffect(() => {
+    if (editorRef.current && targetLine) {
+      setTimeout(() => {
+        editorRef.current.revealLineInCenter(targetLine);
+        editorRef.current.setPosition({ lineNumber: targetLine, column: 1 });
+        editorRef.current.focus();
+        
+        /* Update mentor panel for this line */
+        if (analysisResult) {
+          const findingAtLine = analysisResult.pillars
+            .flatMap(p => p.findings)
+            .find((f: Finding) => f.line === targetLine);
+          setSelectedFinding(findingAtLine || null);
+        }
+      }, 200); 
+    }
+  }, [targetLine, analysisResult]);
+
+  /* Monaco setup — custom Aegean themes */
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     monacoRef.current = monaco;
     editorRef.current = editor;
 
-    /* Register η custom Aegean θεματική */
+    /* Register custom Aegean themes */
     monaco.editor.defineTheme('aegean-dark', AEGEAN_DARK_THEME);
-    monaco.editor.setTheme('aegean-dark');
+    monaco.editor.defineTheme('aegean-light', AEGEAN_LIGHT_THEME);
+    monaco.editor.setTheme(theme === 'dark' ? 'aegean-dark' : 'aegean-light');
   };
+
+  /* Sync editor theme when global theme changes */
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(theme === 'dark' ? 'aegean-dark' : 'aegean-light');
+    }
+  }, [theme]);
 
   /* Τοποθέτηση markers όταν αλλάζουν τα αποτελέσματα */
   useEffect(() => {
@@ -50,22 +212,62 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       );
       monacoRef.current.editor.setModelMarkers(editorRef.current.getModel(), 'owner', markers);
 
-      /* Gutter decorations */
+      /* Gutter decorations with severity-based colors */
       const decorations = analysisResult.pillars.flatMap(p => 
-        p.findings.map((f: Finding) => ({
-          range: new monacoRef.current.Range(f.line, 1, f.line, 1),
-          options: {
-            isWholeLine: true,
-            glyphMarginClassName: 'slop-gutter-icon',
-            glyphMarginHoverMessage: { value: f.message }
-          }
-        }))
+        p.findings.map((f: Finding) => {
+          let severityClass = 'slop-gutter-icon';
+          if (f.severity > 0.7) severityClass += ' slop-gutter-icon-high';
+          else if (f.severity > 0.4) severityClass += ' slop-gutter-icon-medium';
+          else severityClass += ' slop-gutter-icon-low';
+
+          return {
+            range: new monacoRef.current.Range(f.line, 1, f.line, 1),
+            options: {
+              isWholeLine: true,
+              glyphMarginClassName: severityClass,
+              glyphMarginHoverMessage: { value: f.message }
+            }
+          };
+        })
       );
       
       const oldDecorations = editorRef.current.getModel()._slopDecorations || [];
       editorRef.current.getModel()._slopDecorations = editorRef.current.deltaDecorations(oldDecorations, decorations);
+
+      /* Listen for cursor changes to update Mentor Panel */
+      const disposable = editorRef.current.onDidChangeCursorPosition((e: any) => {
+        const findingAtLine = analysisResult.pillars
+          .flatMap(p => p.findings)
+          .find((f: Finding) => f.line === e.position.lineNumber);
+        setSelectedFinding(findingAtLine || null);
+      });
+      
+      return () => disposable.dispose();
     }
   }, [analysisResult]);
+
+  /* ─── Active Finding Highlight ─── */
+  useEffect(() => {
+    if (editorRef.current && monacoRef.current) {
+      const model = editorRef.current.getModel();
+      if (!model) return;
+
+      const newDecorations: any[] = [];
+      if (selectedFinding) {
+        newDecorations.push({
+          range: new monacoRef.current.Range(selectedFinding.line, 1, selectedFinding.line, 1),
+          options: {
+            isWholeLine: true,
+            className: 'active-finding-line',
+            marginClassName: 'active-finding-margin'
+          }
+        });
+      }
+
+      const oldDecorations = model._activeFindingDecorations || [];
+      model._activeFindingDecorations = editorRef.current.deltaDecorations(oldDecorations, newDecorations);
+    }
+  }, [selectedFinding]);
 
   /* Εκτέλεση ανάλυσης */
   const handleAnalyze = useCallback(async () => {
@@ -74,17 +276,18 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     setAnalyzing(true);
     setLastError(null);
     try {
-      const sensitivity = localStorage.getItem('slop_sensitivity') || '50';
-      const experimental = localStorage.getItem('slop_experimental') === 'true';
-      const humanity_shield = localStorage.getItem('slop_humanity_shield') !== 'false'; // Default to true
+      const sensitivity = localStorage.getItem('slop_sensitivity') || '75';
+      const humanityShield = localStorage.getItem('slop_humanity_shield') !== 'false';
+      const experimental = localStorage.getItem('slop_experimental') !== 'false';
 
       const rawResult: string = await invoke('analyze_code', { 
         code, 
         language,
+        template: isTemplateMode ? templateCode : undefined,
         settings: {
           sensitivity: parseInt(sensitivity),
           experimental,
-          humanity_shield
+          humanity_shield: humanityShield
         }
       });
       const result = JSON.parse(rawResult);
@@ -94,17 +297,18 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       }
       
       setAnalysisResult(result);
-      addToast('Η ανάλυση ολοκληρώθηκε με επιτυχία', 'success');
+      setAnalyzedCode(code);
+      addToast(lang === 'EL' ? 'Η ανάλυση ολοκληρώθηκε με επιτυχία' : 'Analysis completed successfully', 'success');
       setView('dashboard');
     } catch (error) {
       console.error('Analysis failed:', error);
       const errorMsg = String(error);
       setLastError(errorMsg);
-      addToast('Η ανάλυση απέτυχε', 'error');
+      addToast(lang === 'EL' ? 'Η ανάλυση απέτυχε' : 'Analysis failed', 'error');
     } finally {
       setAnalyzing(false);
     }
-  }, [code, language, isAnalyzing, setAnalyzing, setAnalysisResult, addToast, setView]);
+  }, [code, language, isAnalyzing, setAnalyzing, setAnalysisResult, setAnalyzedCode, addToast, setView, isTemplateMode, templateCode, lang]);
 
   /* Ctrl+Enter shortcut */
   useEffect(() => {
@@ -120,29 +324,41 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
 
   /* Μέτρηση γραμμών */
   const lineCount = code.split('\n').length;
+  const auditResultsArray = Array.isArray(auditResults) ? auditResults : [];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-32px)] overflow-hidden bg-bg rounded-3xl border border-white/[0.04] shadow-strong mx-3 md:mx-6 mb-4 mt-4 anim-scale-in">
+    <div className="flex flex-col h-[calc(100vh-32px)] overflow-hidden bg-bg rounded-3xl border border-border-subtle shadow-strong mx-3 md:mx-6 mb-4 mt-4 anim-scale-in">
       
       {/* ═══ Toolbar ═══ */}
-      <header className="h-[68px] border-b border-white/[0.04] flex items-center justify-between px-6 bg-surface/40 backdrop-blur-md shrink-0">
+      <header className="h-[68px] border-b border-border-subtle flex items-center justify-between px-6 bg-surface/40 backdrop-blur-md shrink-0">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-accent-primary/[0.08] rounded-xl border border-accent-primary/[0.12]">
-            <FileCode className="text-accent-primary" size={20} />
+            <FileCode className="text-accent-primary" size={20} strokeWidth={1.75} />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight leading-tight">Code Analyzer</h2>
+            <h2 className="text-base font-bold text-text-primary tracking-tight leading-tight">{t.codeAnalyzer}</h2>
             <div className="flex items-center space-x-2">
               <span className="w-1.5 h-1.5 rounded-full bg-human animate-pulse" />
-              <p className="text-[9px] text-text-secondary uppercase font-bold tracking-[0.15em]">Neural Engine Active</p>
+              <p className="text-[9px] text-text-secondary uppercase font-bold tracking-[0.15em] opacity-80">{t.neuralEngine}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-5">
+          {auditResultsArray.length > 0 && (
+            <button 
+              onClick={() => setView('audit')}
+              className="flex items-center space-x-2 px-4 py-2 bg-accent-primary text-white rounded-xl font-bold hover:scale-[1.03] transition-all duration-200 shadow-lg shadow-accent-primary/10"
+              title="Back to Batch Audit Results"
+            >
+              <ArrowRight size={14} strokeWidth={1.75} className="rotate-180" />
+              <span className="uppercase tracking-[0.1em] text-[10px]">Back to Audit</span>
+            </button>
+          )}
+
           {/* Μετρητής γραμμών */}
-          <div className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 bg-white/[0.03] rounded-lg border border-white/[0.04]">
-            <Sparkles size={12} className="text-text-disabled" />
+          <div className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 bg-surface-elevated rounded-lg border border-border-subtle">
+            <Sparkles size={12} strokeWidth={1.75} className="text-text-disabled" />
             <span className="text-[10px] font-mono text-text-secondary">{lineCount} lines</span>
           </div>
 
@@ -150,12 +366,42 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           <select 
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="appearance-none bg-white/[0.04] border border-white/[0.06] rounded-xl px-4 py-2 pr-8 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-accent-primary/40 hover:bg-white/[0.07] transition-all duration-200 cursor-pointer"
+            className="appearance-none bg-surface-elevated border border-border-default rounded-xl px-4 py-2 pr-8 text-xs font-bold text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/40 hover:bg-surface-hover transition-all duration-200 cursor-pointer"
           >
+            <option value="auto">Auto-Detect</option>
             <option value="python">Python 3.x</option>
             <option value="c">C (ANSI/C23)</option>
             <option value="generic">Generic / Other</option>
           </select>
+
+          {/* Template Mode Toggle */}
+          <button 
+            onClick={() => {
+              setTemplateMode(!isTemplateMode);
+              if (!isTemplateMode) setActiveTab('template');
+              else setActiveTab('code');
+            }}
+            title={t.templateModeDesc}
+            className={`
+              flex items-center space-x-2 px-4 py-2 rounded-xl font-bold transition-all duration-200 border
+              ${isTemplateMode 
+                ? 'bg-human/10 border-human/30 text-human shadow-lg shadow-human/10' 
+                : 'bg-surface-elevated border-border-default text-text-disabled hover:bg-surface-hover'
+              }
+            `}
+          >
+            <LayoutTemplate size={16} strokeWidth={1.75} />
+            <span className="uppercase tracking-[0.1em] text-[10px]">{t.templateMode}</span>
+          </button>
+
+          {/* Sync Button */}
+          <button 
+            onClick={forceRefresh}
+            title="Force Sync with Store"
+            className="p-2.5 bg-surface-elevated border border-border-default text-text-disabled hover:bg-surface-hover hover:text-accent-primary rounded-xl transition-all duration-200"
+          >
+            <RefreshCcw size={16} strokeWidth={1.75} />
+          </button>
 
           {/* Analyze Button */}
           <button 
@@ -164,15 +410,15 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             className={`
               group relative overflow-hidden flex items-center space-x-2.5 px-6 py-2 rounded-xl font-bold transition-all duration-300 active:scale-95
               ${isAnalyzing 
-                ? 'bg-white/[0.04] text-text-disabled cursor-not-allowed' 
-                : 'bg-accent-primary text-bg hover:shadow-lg hover:shadow-accent-primary/25 hover:scale-[1.02]'
+                ? 'bg-surface-elevated text-text-disabled cursor-not-allowed' 
+                : 'bg-accent-primary text-white hover:shadow-lg hover:shadow-accent-primary/25 hover:scale-[1.02]'
               }
             `}
           >
             {isAnalyzing ? (
-              <Loader2 className="animate-spin" size={16} />
+              <Loader2 className="animate-spin" size={16} strokeWidth={1.75} />
             ) : (
-              <Play size={16} className="fill-current group-hover:translate-x-0.5 transition-transform" />
+              <Play size={16} strokeWidth={1.75} className="fill-current group-hover:translate-x-0.5 transition-transform" />
             )}
             <span className="uppercase tracking-[0.15em] text-[11px]">{isAnalyzing ? t.analyzingBtn : t.analyzeBtn}</span>
             {!isAnalyzing && (
@@ -182,18 +428,50 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         </div>
       </header>
 
-      {/* ═══ Main content ═══ */}
-      <main className="flex-1 flex overflow-hidden">
+      {/* ═══ Editor Tabs (Only in Template Mode) ═══ */}
+      {isTemplateMode && (
+        <div className="h-10 border-b border-border-subtle bg-surface/20 flex items-center px-6 space-x-6 shrink-0">
+          <button 
+            onClick={() => setActiveTab('template')}
+            className={`
+              h-full flex items-center space-x-2 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all
+              ${activeTab === 'template' 
+                ? 'text-human border-human' 
+                : 'text-text-disabled border-transparent hover:text-text-secondary'
+              }
+            `}
+          >
+            <LayoutTemplate size={12} strokeWidth={1.75} />
+            <span>{t.templateTitle}</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('code')}
+            className={`
+              h-full flex items-center space-x-2 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all
+              ${activeTab === 'code' 
+                ? 'text-accent-primary border-accent-primary' 
+                : 'text-text-disabled border-transparent hover:text-text-secondary'
+              }
+            `}
+          >
+            <FileCode size={12} strokeWidth={1.75} />
+            <span>{t.codeTitle}</span>
+          </button>
+        </div>
+      )}
 
-        {/* Editor */}
-        <div className="flex-1 relative flex flex-col">
+      {/* ═══ Main content ═══ */}
+      <main className="flex-1 flex overflow-x-auto overflow-y-hidden bg-bg">
+
+        {/* Editor Area */}
+        <div className="flex-1 relative flex flex-col min-w-[320px] border-r border-border-subtle/50">
           {lastError && (
-            <div className="bg-red-500/10 border-b border-red-500/20 p-4 anim-slide-down">
-              <div className="flex items-center space-x-2 text-red-500 mb-1">
-                <AlertCircle size={14} />
+            <div className="bg-slop/10 border-b border-slop/20 p-4 anim-slide-down">
+              <div className="flex items-center space-x-2 text-slop mb-1">
+                <AlertCircle size={14} strokeWidth={1.75} />
                 <span className="text-[10px] font-bold uppercase tracking-widest">Engine Error Detail</span>
               </div>
-              <code className="text-[11px] text-red-400/80 font-mono break-all line-clamp-2 hover:line-clamp-none cursor-pointer decoration-dotted underline">
+              <code className="text-[11px] text-slop/80 font-mono break-all line-clamp-2 hover:line-clamp-none cursor-pointer decoration-dotted underline">
                 {lastError}
               </code>
             </div>
@@ -203,14 +481,18 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             height="100%"
             language={language}
             theme="aegean-dark"
-            value={code}
-            onChange={(v) => setCode(v || '')}
+            value={activeTab === 'code' ? code : templateCode}
+            onChange={(v) => activeTab === 'code' ? setCode(v || '') : setTemplateCode(v || '')}
             onMount={handleEditorDidMount}
-            options={AEGEAN_EDITOR_OPTIONS}
+            options={{
+              ...AEGEAN_EDITOR_OPTIONS,
+              readOnly: isAnalyzing,
+              placeholder: activeTab === 'code' ? t.analyzerPlaceholder : t.templatePlaceholder
+            }}
             loading={
               <div className="flex items-center justify-center h-full bg-bg">
                 <div className="flex flex-col items-center space-y-3">
-                  <Loader2 size={24} className="animate-spin text-accent-primary" />
+                  <Loader2 size={24} strokeWidth={1.75} className="animate-spin text-accent-primary" />
                   <span className="text-xs text-text-secondary font-medium">{t.loadingEditor}</span>
                 </div>
               </div>
@@ -219,43 +501,205 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           </div>
         </div>
 
-        {/* ═══ Info Sidebar ═══ */}
-        <aside className="w-80 border-l border-white/[0.04] bg-surface/20 backdrop-blur-sm p-6 space-y-8 hidden lg:flex flex-col overflow-y-auto">
+        {/* ═══ Info Sidebar / Mentor Panel ═══ */}
+        <aside className="w-[380px] shrink-0 border-l border-border-subtle bg-surface/20 backdrop-blur-sm p-6 space-y-8 flex flex-col overflow-y-auto">
           
-          {/* How it works */}
-          <div className="space-y-5 anim-slide-up">
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-white font-black opacity-90">{t.howItWorks}</h3>
-            <ul className="space-y-4">
-              {t.features.map((item: any, idx: number) => (
-                <li key={item.title} className={`flex items-start space-x-3 group ${idx === 1 ? 'anim-delay-100' : idx === 2 ? 'anim-delay-200' : ''}`}>
-                  <div className="p-1.5 bg-human/[0.08] rounded-lg group-hover:bg-human/[0.14] transition-colors duration-300 shrink-0 mt-0.5">
-                    <CheckCircle2 size={14} className="text-human" />
+          {selectedFinding ? (
+            /* ─── Detail View: Mentor's Note ─── */
+            <div className="space-y-6 anim-slide-up">
+              <button 
+                onClick={() => setSelectedFinding(null)}
+                className="flex items-center space-x-2 text-text-secondary hover:text-text-primary transition-colors text-[10px] uppercase font-black tracking-widest"
+              >
+                <ArrowRight size={14} strokeWidth={1.75} className="rotate-180" />
+                <span>Πίσω στη Λίστα</span>
+              </button>
+
+              <div className="flex items-center space-x-3 text-slop">
+                <ShieldAlert size={20} strokeWidth={1.75} />
+                <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">Mentor's Note</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-surface-elevated border border-border-default rounded-2xl space-y-3">
+                  <p className="text-xs font-bold text-text-primary leading-tight">{selectedFinding.message}</p>
+                  <p className="text-[11px] text-text-secondary leading-loose italic">"{selectedFinding.rationale}"</p>
+                </div>
+
+                <div className="p-4 bg-human/[0.05] border border-human/[0.1] rounded-2xl space-y-3">
+                  <div className="flex items-center space-x-2 text-human">
+                    <Sparkles size={14} strokeWidth={1.75} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Η ΑΝΘΡΩΠΙΝΗ ΠΙΝΕΛΙΑ</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-white mb-0.5 leading-tight">{item.title}</p>
-                    <p className="text-[11px] text-text-secondary leading-relaxed">{item.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  <p className="text-xs text-text-primary font-medium leading-loose">
+                    {selectedFinding.human_alternative}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : analysisResult ? (
+            /* ─── List View: All Findings ─── */
+            <div className="space-y-6 anim-slide-up">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 text-text-primary opacity-90">
+                  <Search size={18} strokeWidth={1.75} />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">ΕΥΡΗΜΑΤΑ ΑΝΑΛΥΣΗΣ</h3>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => {
+                      const allNames = analysisResult.pillars.map(p => p.name);
+                      const areAllCollapsed = allNames.every(name => collapsedPillars[name]);
+                      const next = {} as Record<string, boolean>;
+                      allNames.forEach(n => next[n] = !areAllCollapsed);
+                      setCollapsedPillars(next);
+                    }}
+                    className="text-[9px] uppercase font-black tracking-widest text-text-disabled hover:text-accent-primary transition-colors"
+                  >
+                    {analysisResult.pillars.map(p => p.name).every(n => collapsedPillars[n]) ? 'Expand All' : 'Collapse All'}
+                  </button>
+                  <span className="px-2 py-0.5 bg-surface-elevated rounded text-[10px] font-mono text-text-secondary border border-border-default">
+                    {analysisResult.pillars.reduce((acc, p) => acc + p.findings.length, 0)} ISSUES
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {analysisResult.pillars
+                  .filter(p => p.findings.length > 0)
+                    .map((p, pIdx) => {
+                      const intelligentlyGrouped = groupFindingsIntelligently(p.findings, lang);
+                      const isCollapsed = collapsedPillars[p.pillar];
+
+                      return (
+                        <div key={pIdx} className="space-y-4">
+                          <button 
+                            onClick={() => togglePillar(p.pillar)}
+                            className="w-full flex items-center justify-between text-text-secondary hover:text-text-primary transition-colors group/pillar"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="p-1 rounded transition-transform group-hover/pillar:scale-110"
+                                style={{ backgroundColor: `${getPillarColorVar(p.pillar)}15`, color: getPillarColorVar(p.pillar) }}
+                              >
+                                <PillarIcon name={p.pillar} />
+                              </div>
+                              <h4 className="text-[10px] uppercase font-black tracking-[0.15em] text-text-primary opacity-80">{formatPillarName(p.pillar)}</h4>
+                            </div>
+                            <span className="text-[10px] font-mono opacity-30">{isCollapsed ? '+' : '−'}</span>
+                          </button>
+                        
+                        {!isCollapsed && (
+                          <div className="space-y-6 pl-2 border-l border-border-subtle/30 ml-3 anim-slide-down">
+                            {intelligentlyGrouped.map((typeGroup, tIdx) => (
+                              <div key={tIdx} className="space-y-3">
+                                {/* Type Subheader */}
+                                {typeGroup.type !== 'engine' && typeGroup.type !== 'info' && (
+                                  <div className="flex items-center space-x-2 opacity-40">
+                                    <div className="h-[1px] w-4 bg-current" />
+                                    <span className="text-[9px] uppercase font-bold tracking-widest">{typeGroup.displayType}</span>
+                                  </div>
+                                )}
+                                
+                                {typeGroup.messages.map((group, mIdx) => {
+                                  const avgSeverity = group.findings.reduce((acc, f) => acc + f.severity, 0) / group.findings.length;
+                                  const isHighRisk = avgSeverity > 0.8;
+                                  const severityColor = avgSeverity > 0.7 ? 'var(--slop)' : avgSeverity > 0.4 ? 'var(--accent-primary)' : 'var(--human)';
+
+                                  return (
+                                    <div
+                                      key={mIdx}
+                                      className={`
+                                        w-full p-4 border rounded-2xl transition-all duration-300 group/card relative overflow-hidden
+                                        ${isHighRisk 
+                                          ? 'bg-slop/[0.04] border-slop/30 shadow-[0_0_15px_-5px_var(--slop)]' 
+                                          : 'bg-surface/40 border-border-subtle hover:border-border-default hover:bg-surface/60'
+                                        }
+                                      `}
+                                    >
+                                      {/* Severity Indicator Line */}
+                                      <div 
+                                        className={`absolute left-0 top-0 bottom-0 w-1 transition-opacity ${isHighRisk ? 'opacity-100' : 'opacity-60'}`}
+                                        style={{ backgroundColor: severityColor }}
+                                      />
+
+                                      <div className="flex items-start justify-between mb-2 pl-1">
+                                        <p className={`text-[11px] font-bold leading-snug transition-colors ${isHighRisk ? 'text-slop' : 'text-text-primary group-hover/card:text-accent-primary'}`}>
+                                          {group.text}
+                                        </p>
+                                        {isHighRisk && (
+                                          <span className="shrink-0 text-[8px] font-black bg-slop text-white px-1.5 py-0.5 rounded-sm animate-pulse tracking-tighter">
+                                            HIGH RISK
+                                          </span>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="flex flex-wrap gap-1.5 pl-1">
+                                        {group.findings.map((f, fIdx) => (
+                                          <button
+                                            key={fIdx}
+                                            onClick={() => {
+                                              setSelectedFinding(f);
+                                              editorRef.current.revealLineInCenter(f.line);
+                                              editorRef.current.setPosition({ lineNumber: f.line, column: 1 });
+                                              editorRef.current.focus();
+                                            }}
+                                            className="px-2 py-1 bg-surface-elevated hover:bg-accent-primary hover:text-white border border-border-subtle rounded-lg text-[9px] font-mono font-bold text-text-secondary transition-all"
+                                          >
+                                            L{f.line}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ) : (
+            /* ─── Initial View: How it works ─── */
+            <div className="space-y-5 anim-slide-up">
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-text-primary font-black opacity-90">{t.howItWorks}</h3>
+              <ul className="space-y-4">
+                {t.features.map((item: any, idx: number) => (
+                  <li key={item.title} className={`flex items-start space-x-3 group ${idx === 1 ? 'anim-delay-100' : idx === 2 ? 'anim-delay-200' : ''}`}>
+                    <div className="p-1.5 bg-human/[0.08] rounded-lg group-hover:bg-human/[0.14] transition-colors duration-300 shrink-0 mt-0.5">
+                      <CheckCircle2 size={14} strokeWidth={1.75} className="text-human" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-text-primary mb-0.5 leading-tight">{item.title}</p>
+                      <p className="text-[11px] text-text-secondary leading-relaxed">{item.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Spacer */}
           <div className="flex-1" />
 
           {/* Privacy notice */}
-          <div className="p-5 bg-slop/[0.04] rounded-2xl border border-slop/[0.06] space-y-2.5 relative overflow-hidden group anim-slide-up anim-delay-300">
-            <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform duration-500">
-              <ShieldAlert size={36} className="text-slop" />
+          {!selectedFinding && (
+            <div className="p-5 bg-slop/[0.04] rounded-2xl border border-slop/[0.06] space-y-2.5 relative overflow-hidden group anim-slide-up anim-delay-300">
+              <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover:rotate-12 transition-transform duration-700">
+                <ShieldAlert size={36} strokeWidth={1.75} className="text-slop" />
+              </div>
+              <div className="flex items-center space-x-2 text-slop">
+                <AlertCircle size={14} strokeWidth={1.75} />
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{t.privacyTitle}</span>
+              </div>
+              <p className="text-[11px] text-text-secondary leading-relaxed relative z-10">
+                {t.privacyDesc}
+              </p>
             </div>
-            <div className="flex items-center space-x-2 text-slop">
-              <AlertCircle size={14} />
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{t.privacyTitle}</span>
-            </div>
-            <p className="text-[11px] text-text-secondary leading-relaxed relative z-10">
-              {t.privacyDesc}
-            </p>
-          </div>
+          )}
         </aside>
       </main>
     </div>

@@ -21,17 +21,17 @@ export const ToastContainer: React.FC = () => {
             }
           `}
         >
-          {toast.type === 'success' && <CheckCircle2 size={16} />}
-          {toast.type === 'error' && <AlertCircle size={16} />}
-          {toast.type === 'info' && <Info size={16} />}
+          {toast.type === 'success' && <CheckCircle2 size={16} strokeWidth={2} />}
+          {toast.type === 'error' && <AlertCircle size={16} strokeWidth={2} />}
+          {toast.type === 'info' && <Info size={16} strokeWidth={2} />}
           
-          <p className="text-sm font-medium text-white">{toast.message}</p>
+          <p className="text-sm font-medium text-text-primary">{toast.message}</p>
           
           <button 
             onClick={() => removeToast(toast.id)}
-            className="p-1 hover:bg-white/[0.05] rounded-lg transition-colors ml-2"
+            className="p-1 hover:bg-surface-hover rounded-lg transition-colors ml-2"
           >
-            <X size={12} className="opacity-40 hover:opacity-100 transition-opacity" />
+            <X size={12} strokeWidth={2.5} className="opacity-40 hover:opacity-100 transition-opacity" />
           </button>
         </div>
       ))}
