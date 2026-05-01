@@ -61,3 +61,10 @@ AiSlop-Portable/
 !*.spec
 # Keep icons
 !launcher/icon.ico
+
+# --- Scratch & Temp ---
+scratch/
+analyzer/scratch/
+project-report.txt
+*.log
+*.tmp

@@ -28,5 +28,25 @@
 *   **[EN] Embedded Engine:** The analysis engine is now an embedded sidecar for 100% offline operation with zero external dependencies.
 *   **[EN] Multi-language Support:** Enhanced detection for Python, C, and Generic code.
 
+## [3.5.0] - 2026-05-01 (Responsive Polish & Forensic Recalibration)
+
+### 🚀 Νέα Χαρακτηριστικά (New Features)
+*   **[EL] Bottom Navigation Bar:** Πλήρης επανασχεδιασμός του Navigation για μέγιστο χώρο εργασίας στον editor.
+*   **[EL] Intelligent Grouping:** Τα ευρήματα ομαδοποιούνται πλέον έξυπνα ανά κατηγορία και σοβαρότητα (Red/Blue/Green).
+*   **[EL] Forensic Color Guide:** Νέα ενότητα στον Οδηγό (Help) που εξηγεί τη σημασία κάθε χρωματικού κώδικα.
+*   **[EN] Bottom Navigation Bar:** Complete navigation redesign for maximum editor workspace and modern app experience.
+*   **[EN] Intelligent Grouping:** Findings are now grouped intelligently by category and severity (Red/Blue/Green).
+*   **[EN] Forensic Color Guide:** New Help section explaining the diagnostic significance of each color code.
+
+### 🧠 Βελτιώσεις Μηχανής (Engine Enhancements)
+*   **[EL] Exponential Weighting:** Νέος αλγόριθμος βαθμολόγησης (severity^1.4) για ακριβέστερη ανάδειξη κρίσιμων AI patterns.
+*   **[EL] Naming Refinement:** Βελτιωμένη ανίχνευση για την ελληνική γλώσσα (αποφυγή false positives σε UPPERCASE_CONSTANTS).
+*   **[EN] Exponential Weighting:** New scoring algorithm (severity^1.4) for more accurate highlighting of critical AI patterns.
+*   **[EN] Naming Refinement:** Improved detection for Greek language (avoids false positives in uppercase constants).
+
+### 🖥️ UI/UX & Σταθερότητα (Stability)
+*   **[EL] Layout Hardening:** Ο editor υποστηρίζει πλέον word wrap και τα panels παραμένουν ορατά σε κάθε ανάλυση οθόνης.
+*   **[EN] Layout Hardening:** Enabled word wrap and ensured UI panels remain stable and visible across all viewport sizes.
+
 ---
 *Papatzis Spotter V3 - Evolution of Objectivity.*

@@ -37,7 +37,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
     onClick={onClick}
     title={`${label}${shortcut ? ` (${shortcut})` : ''}`}
     className={`
-      relative flex flex-col items-center justify-center w-full py-3 space-y-1 
+      relative flex flex-col items-center justify-center h-full px-4 space-y-1 
       transition-all duration-300 group focus-ring outline-none
       ${active 
         ? 'text-accent-primary' 
@@ -45,15 +45,24 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
       }
     `}
   >
+    {/* Active Indicator Line — Now at the Top */}
     <div className={`
-      p-2.5 rounded-xl transition-all duration-300
+      absolute top-0 h-[3px] rounded-b-full transition-all duration-500 ease-out-expo
+      ${active 
+        ? 'w-12 bg-accent-primary' 
+        : 'w-0 bg-transparent'
+      }
+    `} />
+
+    <div className={`
+      p-2 rounded-xl transition-all duration-300
       ${active 
         ? 'bg-accent-primary/10' 
         : 'group-hover:bg-white/[0.04]'
       }
     `}>
       <Icon 
-        size={22} 
+        size={20} 
         strokeWidth={1.75}
         className={`transition-all duration-300`} 
       />
@@ -65,14 +74,6 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
     `}>
       {label}
     </span>
-
-    <div className={`
-      absolute right-0 w-[3px] rounded-l-full transition-all duration-500 ease-out-expo
-      ${active 
-        ? 'h-10 bg-accent-primary' 
-        : 'h-0 bg-transparent'
-      }
-    `} />
   </button>
 );
 
@@ -183,7 +184,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-bg text-text-primary font-sans antialiased overflow-hidden bg-noise">
+    <div className="flex flex-col h-screen bg-bg text-text-primary font-sans antialiased overflow-hidden bg-noise">
       <ToastContainer />
       
       <Modal 
@@ -194,19 +195,26 @@ function App() {
         <Config lang={lang} />
       </Modal>
       
-      {/* ═══ Sidebar ═══ */}
-      <nav className="w-[76px] border-r border-border-default flex flex-col items-center py-6 bg-surface shrink-0 z-50 relative">
+      {/* ═══ Main Content Area ═══ */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 relative z-10 h-full flex flex-col overflow-y-auto">
+          {renderView()}
+        </div>
+      </div>
+
+      {/* ═══ Bottom Navigation Bar ═══ */}
+      <nav className="h-[76px] w-full border-t border-border-default flex items-center px-6 bg-surface shrink-0 z-50 relative">
         
-        {/* PS Logo — Integrated Image */}
+        {/* PS Logo — Compact Version */}
         <div 
-          className="w-12 h-12 bg-surface border border-border-subtle rounded-xl flex items-center justify-center shadow-strong cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:border-accent-primary/30 mb-8 relative z-10 group overflow-hidden"
+          className="w-10 h-10 bg-surface border border-border-subtle rounded-xl flex items-center justify-center shadow-strong cursor-pointer transition-all duration-300 hover:scale-[1.05] hover:border-accent-primary/30 mr-8 relative z-10 group overflow-hidden"
           onClick={() => setView('wizard')}
           title={`Papatzis Spotter — ${t.home}`}
         >
-          <PapatzisLogo size={32} className="text-accent-primary" />
+          <PapatzisLogo size={24} className="text-accent-primary" />
         </div>
 
-        <div className="flex-1 flex flex-col space-y-1 w-full relative z-10">
+        <div className="flex-1 flex items-center justify-center space-x-12 relative z-10">
           <SidebarItem 
             icon={Home} 
             label={t.home} 
@@ -240,9 +248,9 @@ function App() {
           />
         </div>
 
-        <div className="w-8 h-px bg-border-subtle my-2" />
+        <div className="w-px h-8 bg-border-subtle mx-6" />
 
-        <div className="space-y-1 w-full relative z-10 pb-4">
+        <div className="relative z-10">
           <SidebarItem 
             icon={SettingsIcon} 
             label={t.settings} 
@@ -252,13 +260,6 @@ function App() {
           />
         </div>
       </nav>
-
-      {/* ═══ Main Content ═══ */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
-        <div className="flex-1 relative z-10 overflow-y-auto h-full flex flex-col">
-          {renderView()}
-        </div>
-      </div>
     </div>
   );
 }

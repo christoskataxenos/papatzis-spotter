@@ -1,7 +1,7 @@
 # Papatzis Spotter
 ## The Offline AI-Slop Detection Engine
 
-[![](https://img.shields.io/badge/version-stable-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases)
+[![](https://img.shields.io/badge/version-3.5.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases)
 [![](https://img.shields.io/badge/license-MIT-333333?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/badge/python-3.10%2B-2F5C8F?style=for-the-badge)](https://python.org)
 [![](https://img.shields.io/badge/platform-windows%20%7C%20linux-333333?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter)
@@ -26,9 +26,9 @@
 
 ---
 
-## Technical Architecture V3
+## Technical Architecture V3.5
 
-Ο μηχανισμός ανάλυσης V3 "ξεκοιλιάζει" τον κώδικα μέσω AST (Abstract Syntax Tree), αλγορίθμων Jaccard και στατιστικής εντροπίας:
+Ο μηχανισμός ανάλυσης V3.5 "ξεκοιλιάζει" τον κώδικα μέσω AST (Abstract Syntax Tree), αλγορίθμων Jaccard και στατιστικής εντροπίας:
 
 | Pillar | Description | Detection Logic |
 | :--- | :--- | :--- |
@@ -54,11 +54,13 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 
 ---
 
-## Key Features V3
+## Key Features V3.5
 
 - **Entropy-Driven Detection:** High-precision analysis based on information entropy.
 - **Batch Audit:** Scan entire directories recursively to detect project-wide AI patterns.
-- **Mentor Panel:** Interactive code inspection with live AI-pattern explanations.
+- **Mentor Panel:** Interactive code inspection with intelligent severity grouping.
+- **Forensic Color Coding:** Clear visual indicators (Red/Blue/Green) for findings.
+- **Bottom Navigation:** Modern, responsive workspace for deep code analysis.
 - **100% Offline:** Embedded analysis engine (sidecar) for maximum privacy.
 - **Industrial Dashboard:** Professional radar charts and animated forensic summaries.
 

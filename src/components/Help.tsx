@@ -98,8 +98,47 @@ export const Help: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         </div>
       </div>
 
+      {/* ═══ Color Coding ═══ */}
+      <div className="space-y-5 anim-slide-up anim-delay-400">
+        <h2 className="text-lg font-bold text-text-primary">{t.colorCodeTitle}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-surface p-5 rounded-2xl border border-slop/20 space-y-3 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-slop" />
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-slop shadow-[0_0_10px_rgba(239,68,68,0.4)] animate-pulse" />
+              <h4 className="text-xs font-bold text-slop uppercase tracking-wider">{t.colorRedName}</h4>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              {t.colorRedDesc}
+            </p>
+          </div>
+
+          <div className="bg-surface p-5 rounded-2xl border border-accent-primary/20 space-y-3 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-accent-primary" />
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-accent-primary shadow-[0_0_10px_rgba(59,130,246,0.4)]" />
+              <h4 className="text-xs font-bold text-accent-primary uppercase tracking-wider">{t.colorBlueName}</h4>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              {t.colorBlueDesc}
+            </p>
+          </div>
+
+          <div className="bg-surface p-5 rounded-2xl border border-human/20 space-y-3 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-human" />
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-human shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
+              <h4 className="text-xs font-bold text-human uppercase tracking-wider">{t.colorGreenName}</h4>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              {t.colorGreenDesc}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ═══ Keyboard Shortcuts ═══ */}
-      <div className="bg-surface p-5 rounded-2xl border border-border-subtle space-y-3.5 anim-slide-up anim-delay-400">
+      <div className="bg-surface p-5 rounded-2xl border border-border-subtle space-y-3.5 anim-slide-up anim-delay-500">
         <h3 className="text-sm font-bold text-text-primary">{t.shortcutsTitle}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {[
