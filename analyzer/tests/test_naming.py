@@ -10,7 +10,7 @@ def parser():
 
 @pytest.fixture
 def analyzer():
-    return NamingAnalyzer('python')
+    return NamingAnalyzer('python', ui_lang='EL')
 
 def test_generic_names(parser, analyzer):
     code = b"data = [1, 2, 3]\nresult = sum(data)"
@@ -18,7 +18,8 @@ def test_generic_names(parser, analyzer):
     findings = analyzer.analyze(tree, code, 'test.py')
     
     messages = [f.message for f in findings]
-    assert any("Generic όνομα: 'data'" in m for m in messages)
+    print(f"Naming messages: {messages}")
+    assert any("Τυπικό (generic) AI naming: 'data'" in m for m in messages)
     assert any("Τυπικό (dummy) όνομα: 'result'" in m for m in messages)
 
 def test_sequential_names(parser, analyzer):

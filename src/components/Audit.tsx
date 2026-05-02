@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Search, FolderOpen, FileCode, CheckCircle2, AlertCircle, ArrowRight, Loader2, BarChart3 } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { readDir, readTextFile } from '@tauri-apps/plugin-fs';
@@ -17,7 +17,7 @@ interface AuditResult {
 
 import { Language, translations } from '../lib/i18n';
 
-export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
+export const Audit: React.FC<{ lang: Language }> = ({ lang }) => {
   const t = translations[lang];
   const { 
     setAnalysisResult, 
@@ -87,7 +87,8 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
               settings: {
                 sensitivity: parseInt(sensitivity),
                 experimental,
-                humanity_shield
+                humanity_shield,
+                ui_lang: lang
               }
             });
             const analysis = JSON.parse(rawResult);
@@ -129,7 +130,7 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         setView('analyzer');
       } catch (err) {
         console.error("Failed to read file for inspection:", err);
-        addToast(lang === 'EL' ? 'Αποτυχία φόρτωσης αρχείου' : 'Failed to load file', 'error');
+        addToast(t.failedToLoadFile, 'error');
         // Still go to analyzer to show error state if result exists
         if (res.result) {
           setAnalysisResult(res.result);
@@ -157,7 +158,7 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           <Search className="text-accent-primary" size={36} strokeWidth={1.75} />
         </div>
         <div className="space-y-2 relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary">Batch Audit</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-text-primary">{t.audit}</h1>
           <p className="text-text-secondary max-w-md mx-auto text-sm leading-relaxed font-medium">
             {t.auditTagline}
           </p>
@@ -250,14 +251,14 @@ export const Audit: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                           <button 
                             onClick={() => inspectCode(res)}
                             className="p-2 hover:bg-accent-primary/[0.08] rounded-lg text-accent-primary transition-all duration-200 opacity-0 group-hover:opacity-100"
-                            title="Inspect Code"
+                            title={t.inspectCode}
                           >
                             <FileCode size={16} />
                           </button>
                           <button 
                             onClick={() => viewDetails(res)}
                             className="p-2 hover:bg-accent-primary/[0.08] rounded-lg text-accent-primary transition-all duration-200 opacity-0 group-hover:opacity-100"
-                            title="View Report"
+                            title={t.viewReport}
                           >
                             <ArrowRight size={16} />
                           </button>

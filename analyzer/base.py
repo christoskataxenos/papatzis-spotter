@@ -4,8 +4,9 @@ from tree_sitter import Tree
 from analyzer.models import Finding
 
 class BaseAnalyzer(ABC):
-    def __init__(self, language: str):
+    def __init__(self, language: str, ui_lang: str = "EN"):
         self.language = language
+        self.ui_lang = ui_lang
         self.findings: List[Finding] = []
 
     @abstractmethod

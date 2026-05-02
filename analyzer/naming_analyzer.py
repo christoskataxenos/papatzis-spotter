@@ -6,8 +6,8 @@ from analyzer.base import BaseAnalyzer
 from analyzer.models import Finding
 
 class NamingAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str, template_identifiers: set = None):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN", template_identifiers: set = None):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
         
         # Target assignments, parameters, loops, AND class/function definitions
@@ -86,15 +86,15 @@ class NamingAnalyzer(BaseAnalyzer):
                     fid = ("naming.enterprise_slop", line, name)
                     if fid not in seen_findings:
                         seen_findings.add(fid)
+                        from analyzer.i18n import translate
+                        t_data = translate("naming.enterprise_slop", ui_lang=self.ui_lang, name=name)
                         self.findings.append(Finding(
                             type="naming.enterprise_slop",
                             file=file_path,
                             line=line,
                             severity=2.5,
                             confidence=0.9,
-                            message=f"Enterprise Slop: '{name}'",
-                            human_alternative="Αντικατάστησε το '{name}' με κάτι απλό. Η οικονομία λέξεων είναι δείγμα εμπειρίας. Για παράδειγμα, αν είναι validator, πες το 'TextValidator' και όχι 'SymmetricalTextualEntityValidatorFactory'.",
-                            rationale="Τα AI μοντέλα 'εκπαιδεύονται' να είναι υπερ-επαγγελματικά, με αποτέλεσμα να χρησιμοποιούν τεράστια ονόματα (Factories, Entities, Managers) ακόμα και για απλές λειτουργίες. Ένας άνθρωπος γράφει κώδικα για να διαβάζεται, όχι για να εντυπωσιάζει."
+                            **t_data
                         ))
                     continue # Skip further checks if this is already a structural slop name
     
@@ -103,15 +103,15 @@ class NamingAnalyzer(BaseAnalyzer):
                     fid = ("naming.generic", line, name)
                     if fid not in seen_findings:
                         seen_findings.add(fid)
+                        from analyzer.i18n import translate
+                        t_data = translate("naming.generic", ui_lang=self.ui_lang, name=name)
                         self.findings.append(Finding(
                             type="naming.generic",
                             file=file_path,
                             line=line,
                             severity=1.2,
                             confidence=1.0,
-                            message=f"Lazy AI Naming: '{name}'",
-                            human_alternative="Γίνε πιο συγκεκριμένος. Τι ακριβώς περιέχει αυτό το '{name}'; Αν είναι λίστα χρηστών, ονόμασέ το 'users' ή 'user_list'.",
-                            rationale="Το AI συχνά βαριέται να σκεφτεί το context και χρησιμοποιεί λέξεις-πασπαρτού όπως 'data', 'info' ή 'value'. Αυτό κάνει τον κώδικα δυσνόητο για άλλους ανθρώπους."
+                            **t_data
                         ))
 
                 # 3. CamelCase Detection in C (Phase 2.4)
@@ -120,15 +120,15 @@ class NamingAnalyzer(BaseAnalyzer):
                         fid = ("naming.camel_case_slop", line, name)
                         if fid not in seen_findings:
                             seen_findings.add(fid)
+                            from analyzer.i18n import translate
+                            t_data = translate("naming.camel_case_slop", ui_lang=self.ui_lang, name=name)
                             self.findings.append(Finding(
                                 type="naming.camel_case_slop",
                                 file=file_path,
                                 line=line,
                                 severity=2.0,
                                 confidence=0.9,
-                                message=f"CamelCase Variable '{name}': Μη-παραδοσιακό naming για C.",
-                                human_alternative="Χρησιμοποίησε snake_case (π.χ. `validation_result`).",
-                                rationale="Ο CamelCase στη C είναι ισχυρό αποτύπωμα LLM, καθώς τα μοντέλα τείνουν να μεταφέρουν συμβάσεις από άλλες γλώσσες (Java/JS)."
+                                **t_data
                             ))
     
                 # 3. Dummy Names (Human-Authentic but lazy)
@@ -136,15 +136,15 @@ class NamingAnalyzer(BaseAnalyzer):
                     fid = ("naming.dummy", line, name)
                     if fid not in seen_findings:
                         seen_findings.add(fid)
+                        from analyzer.i18n import translate
+                        t_data = translate("naming.dummy", ui_lang=self.ui_lang, name=name)
                         self.findings.append(Finding(
                             type="naming.dummy",
                             file=file_path,
                             line=line,
                             severity=0.4, # Very low severity - humans use these too!
                             confidence=0.5,
-                            message=f"Τυπικό (dummy) όνομα: '{name}'",
-                            human_alternative="Αν ο κώδικας είναι παραγωγής, δώστε πιο συγκεκριμένο όνομα.",
-                            rationale="Αυτά τα ονόματα είναι κοινά σε ανθρώπινα dummy scripts αλλά και σε AI παραδείγματα. Χαμηλή βαρύτητα."
+                            **t_data
                         ))
 
         return self.findings

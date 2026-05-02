@@ -6,8 +6,8 @@ from typing import List, Dict
 import math
 
 class StructuralAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
         
         # Redundant IF pattern
@@ -116,15 +116,15 @@ class StructuralAnalyzer(BaseAnalyzer):
         for tag, nodes in captures.items():
             if tag == "redundant_if":
                 for node in nodes:
+                    from analyzer.i18n import translate
+                    t_data = translate("structural.logic_verbosity", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="structural.redundant_if",
                         file=file_path,
                         line=node.start_point[0] + 1,
                         severity=0.5,
                         confidence=1.0,
-                        message="Redundant If-Return (Verbose Logic)",
-                        human_alternative="Αντικατάστησε το if/else με ένα άμεσο `return condition`. Για παράδειγμα: `return x > 5` αντί για `if x > 5: return True else: return False`.",
-                        rationale="Το AI έχει την τάση να είναι υπερβολικά αναλυτικό (verbose) για να φαίνεται επεξηγηματικό. Ένας έμπειρος προγραμματιστής προτιμά την κομψότητα και την αποφυγή περιττών διακλαδώσεων."
+                        **t_data
                     ))
 
         # 2. Detect Unnecessary Wrappers (Proxy functions)
@@ -141,15 +141,15 @@ class StructuralAnalyzer(BaseAnalyzer):
                         if len(statements) != 1:
                             continue
                             
+                    from analyzer.i18n import translate
+                    t_data = translate("structural.proxy_function", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="structural.proxy_function",
                         file=file_path,
                         line=node.start_point[0] + 1,
                         severity=0.4,
                         confidence=0.7,
-                        message="Empty Proxy Function (Wrapper Slop)",
-                        human_alternative="Αν η συνάρτηση δεν προσθέτει κάποιο abstraction ή business logic, αφαίρεσέ την και κάλεσε απευθείας την εσωτερική συνάρτηση.",
-                        rationale="Τα LLMs μερικές φορές δημιουργούν 'άδειες' συναρτήσεις-περιτυλίγματα που απλώς πασάρουν δεδομένα. Αυτό προσθέτει περιττή πολυπλοκότητα χωρίς κανένα όφελος."
+                        **t_data
                     ))
 
         # 3. GPT Error Handling Template Matching
@@ -159,15 +159,15 @@ class StructuralAnalyzer(BaseAnalyzer):
             for tag, nodes in captures.items():
                 if tag == "gpt_error":
                     for node in nodes:
+                        from analyzer.i18n import translate
+                        t_data = translate("structural.gpt_error_pattern", ui_lang=self.ui_lang)
                         self.findings.append(Finding(
                             type="structural.gpt_error_pattern",
                             file=file_path,
                             line=node.start_point[0] + 1,
                             severity=0.6,
                             confidence=0.8,
-                            message="Standard AI Error Handling Template",
-                            human_alternative="Μην μένεις στο `print(e)`. Χρησιμοποίησε ένα σωστό `logger`, σήκωσε ένα custom exception ή πρόσθεσε ουσιαστικό error recovery.",
-                            rationale="Το `try: ... except Exception as e: print(e)` είναι η 'εύκολη λύση' που δίνει το AI αν δεν του δώσεις οδηγίες. Σε επαγγελματικό κώδικα, η διαχείριση σφαλμάτων πρέπει να είναι στοχευμένη."
+                            **t_data
                         ))
 
         # 4. Depth Variance Metric (1.2)
@@ -179,15 +179,15 @@ class StructuralAnalyzer(BaseAnalyzer):
             
             # Πολύ χαμηλή απόκλιση σε κώδικα με κάποιο βάθος είναι ύποπτη για AI "επιπεδότητα"
             if std_dev < 1.0 and mean_depth > 3:
+                from analyzer.i18n import translate
+                t_data = translate("structural.low_depth_variance", ui_lang=self.ui_lang)
                 self.findings.append(Finding(
                     type="structural.low_depth_variance",
                     file=file_path,
                     line=1,
                     severity=0.4,
                     confidence=0.6,
-                    message=f"Low Depth Variance ({std_dev:.2f}): Ο κώδικας έχει ασυνήθιστα ομοιόμορφο βάθος nesting.",
-                    human_alternative="Ενισχύστε τη δομή του κώδικα με πιο φυσικές διακυμάνσεις στη λογική.",
-                    rationale="Ο ανθρώπινος κώδικας τείνει να έχει 'κορυφές' και 'κοιλάδες' πολυπλοκότητας, ενώ το AI παράγει συχνά ομοιόμορφες δομές."
+                    **t_data
                 ))
 
         # 5. Node Distribution & Entropy Analysis (Phase 1.1)
@@ -205,15 +205,15 @@ class StructuralAnalyzer(BaseAnalyzer):
             # Heuristic: AI code often has "low diversity" in node types (very balanced/flat)
             # Ή αντίθετα, αν είναι υπερβολικά "καθαρό" textbook, η εντροπία είναι χαμηλή
             if 1.0 < entropy < 2.5: # Εύρος που θυμίζει "υπερβολικά προβλέψιμο" κώδικα
+                from analyzer.i18n import translate
+                t_data = translate("structural.low_node_entropy", ui_lang=self.ui_lang)
                 self.findings.append(Finding(
                     type="structural.low_node_entropy",
                     file=file_path,
                     line=1,
                     severity=0.5,
                     confidence=0.7,
-                    message=f"Low Node Type Entropy ({entropy:.2f}): Χαμηλή ποικιλία δομικών στοιχείων.",
-                    human_alternative="Εμπλουτίστε τον κώδικα με πιο φυσικές προγραμματιστικές δομές.",
-                    rationale="Τα LLMs συχνά ανακυκλώνουν τις ίδιες δομικές μονάδες, οδηγώντας σε στατιστικά 'επίπεδο' κώδικα."
+                    **t_data
                 ))
 
         # 5.2 Ratio Analysis (High Assignment-to-Loop)
@@ -221,15 +221,15 @@ class StructuralAnalyzer(BaseAnalyzer):
         loops = node_counts.get("for_statement", 0) + node_counts.get("while_statement", 0)
         
         if loops > 0 and (assignments / loops) > 12:
+            from analyzer.i18n import translate
+            t_data = translate("structural.high_assignment_ratio", ui_lang=self.ui_lang)
             self.findings.append(Finding(
                 type="structural.high_assignment_ratio",
                 file=file_path,
                 line=1,
                 severity=0.3,
                 confidence=0.5,
-                message="High Assignment-to-Loop Ratio: Πολύ μεγάλο ποσοστό αναθέσεων σε σχέση με loops.",
-                human_alternative="Εμπλουτίστε τη λογική με δυναμικές δομές ελέγχου.",
-                rationale="Το AI τείνει να 'ξεδιπλώνει' λογική σε πολλές μεμονωμένες αναθέσεις αντί για συμπαγή loops (verbosity)."
+                **t_data
             ))
 
         return self.findings

@@ -88,7 +88,7 @@ const AnimatedScore = ({ target, color }: { target: number; color: string }) => 
 
 
 /* ─── Main Dashboard ─── */
-export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
+export const Dashboard: React.FC<{ lang: Language }> = ({ lang }) => {
   const { analysisResult, setView, addToast, setTargetLine, auditResults } = useAppStore();
   const t = translations[lang];
 
@@ -100,6 +100,18 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   };
 
+  const getScoreLabel = () => {
+    const rawLabel = analysisResult?.interpretation || "";
+    const localizedLabel = t.tiers[rawLabel as keyof typeof t.tiers] || rawLabel;
+    
+    // Add icon prefix back (Support both Greek and English backend outputs)
+    if (rawLabel.includes('Τίμιος') || rawLabel.includes('Honest')) return `🏆 ${localizedLabel}`;
+    if (rawLabel.includes('Επαγγελματίας') || rawLabel.includes('Professional')) return `⚠️ ${localizedLabel}`;
+    if (rawLabel.includes('Ψιλικατζής') || rawLabel.includes('Petty')) return `🔴 ${localizedLabel}`;
+    if (rawLabel.includes('Ερασιτέχνης') || rawLabel.includes('Amateur')) return `💀 ${localizedLabel}`;
+    return localizedLabel;
+  };
+
   /* Empty state Check moved up */
   if (!analysisResult) {
     return (
@@ -107,12 +119,12 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         <div className="p-6 bg-surface-elevated rounded-3xl border border-border-subtle">
           <ShieldAlert size={48} className="text-text-disabled" strokeWidth={1.75} />
         </div>
-        <h2 className="text-2xl font-bold text-text-secondary">{lang === 'EL' ? 'Δεν βρέθηκε ανάλυση' : 'No analysis found'}</h2>
+        <h2 className="text-2xl font-bold text-text-secondary">{t.noAnalysisFound}</h2>
         <button 
           onClick={() => setView('analyzer')}
           className="flex items-center space-x-3 px-8 py-3.5 bg-surface-elevated border border-border-default rounded-xl hover:bg-surface-hover transition-all duration-300 group"
         >
-          <span className="font-semibold text-accent-primary text-sm">{lang === 'EL' ? 'Μετάβαση στον Analyzer' : 'Go to Analyzer'}</span>
+          <span className="font-semibold text-accent-primary text-sm">{t.goToAnalyzer}</span>
           <ArrowRight size={18} className="text-accent-primary group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
@@ -122,7 +134,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
   const handleCopyJSON = () => {
     if (analysisResult) {
       navigator.clipboard.writeText(JSON.stringify(analysisResult, null, 2));
-      addToast(lang === 'EL' ? 'Το JSON αντιγράφηκε στο πρόχειρο!' : 'JSON copied to clipboard!', 'success');
+      addToast(t.jsonCopied, 'success');
     }
   };
 
@@ -146,70 +158,31 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
 
       // Report Header
       let report = `# 📂 CASE FILE: PAPATZIS SPOTTER VERDICT\n`;
-      report += `\`SESSION_ID: ${sessionId}\` | \`CORE_VERSION: 1.4.1-embedded\` | \`TIMESTAMP: ${now.toLocaleString()}\`\n\n`;
+      report += `\`SESSION_ID: ${sessionId}\` | \`CORE_VERSION: 1.5.0-embedded\` | \`TIMESTAMP: ${now.toLocaleString()}\`\n\n`;
       
-      report += `## ⚖️ ${lang === 'EL' ? 'ΤΟ ΠΟΡΙΣΜΑ' : 'THE VERDICT'}: ${getScoreLabel()}\n`;
-      report += `> **${lang === 'EL' ? 'ΣΥΝΟΛΙΚΟ SCORE' : 'FINAL SCORE'}:** ${score} / 100\n`;
-      report += `> **${lang === 'EL' ? 'ΒΑΘΜΟΣ ΣΙΓΟΥΡΙΑΣ' : 'CONFIDENCE'}:** ${Math.round(analysisResult.confidence_score * 100)}%\n\n`;
+      report += `## ⚖️ ${t.results}: ${getScoreLabel()}\n`;
+      report += `> **${t.papatzisScore.toUpperCase()}:** ${score} / 100\n`;
+      report += `> **${t.confidence.toUpperCase()}:** ${Math.round(analysisResult.confidence_score * 100)}%\n\n`;
       
-      report += `### 🔎 ${lang === 'EL' ? 'ΣΥΝΟΠΤΙΚΗ ΑΞΙΟΛΟΓΗΣΗ' : 'FORENSIC SUMMARY'}\n`;
-      if (score > 70) {
-        report += lang === 'EL' 
-          ? `🚨 **ΚΡΙΣΙΜΟ SLOP.** Ο κώδικας εμφανίζει ακραία δομική συμμετρία και στατιστική προβλεψιμότητα. Στερείται οργανικής πολυπλοκότητας και ανθρώπινης πρόθεσης. Η χρήση του ως έχει ενέχει ρίσκο "ψηφιακής παπάτζας".\n\n`
-          : `🚨 **CRITICAL SLOP DETECTED.** The code exhibits extreme structural symmetry and statistical predictability. It lacks organic complexity and human intentionality. Use as-is is highly suspicious.\n\n`;
-      } else if (score > 30) {
-        report += lang === 'EL'
-          ? `⚠️ **ΥΠΟΠΤΑ ΜΟΤΙΒΑ.** Εντοπίστηκαν μοτίβα που παραπέμπουν σε βαριά χρήση AI χωρίς επιμέλεια. Ο κώδικας μοιάζει "υπερβολικά καθαρός" για να είναι 100% χειροποίητος. Συνιστάται έλεγχος.\n\n`
-          : `⚠️ **SUSPICIOUS PATTERNS.** Detected patterns characteristic of heavy AI assistance. The structure feels "too clean" to be purely organic. Verification of architectural intent is recommended.\n\n`;
-      } else {
-        report += lang === 'EL'
-          ? `✅ **ΑΝΘΡΩΠΙΝΗ ΑΚΕΡΑΙΟΤΗΤΑ.** Δεν ανιχνεύθηκαν σημαντικά AI αποτυπώματα. Ο κώδικας φέρει τα οργανικά σημάδια της ανθρώπινης λογικής, με απρόβλεπτη αλλά στοχευμένη δομή.\n\n`
-          : `✅ **HUMAN INTEGRITY VERIFIED.** No meaningful AI signatures detected. The code displays organic reasoning and intentional complexity consistent with human craftsmanship.\n\n`;
-      }
+      let summary = '';
+      if (analysisResult.final_score >= 60) summary = t.criticalSlopSummary;
+      else if (analysisResult.final_score >= 30) summary = t.suspiciousPatternsSummary;
+      else summary = t.humanIntegritySummary;
 
-      report += `---\n\n`;
-      report += `## 📊 ${lang === 'EL' ? 'ΑΝΑΛΥΣΗ ΑΝΑ ΠΥΛΩΝΑ' : 'PILLAR-BY-PILLAR AUDIT'}\n\n`;
-      
-      const pillarDescs: Record<string, { el: string, en: string }> = {
-        'Ρομποτική Ομοιομορφία': {
-          el: 'Έλεγχος δομικής συμμετρίας και "τέλειων" αποστάσεων που σπάνια διατηρεί άνθρωπος.',
-          en: 'Structural symmetry and textbook-perfect spacing that humans rarely maintain.'
-        },
-        'Βαφτιστικό Slop': {
-          el: 'Εντοπισμός γενόσημων ονομάτων (data, list, item) που χρησιμοποιούν τα LLMs.',
-          en: 'Generic naming patterns often used by AI to fill architectural gaps.'
-        },
-        'Στατιστική Φλυαρία': {
-          el: 'Μέτρηση περιττών σχολίων και πλεονασματικού κώδικα (boilerplate).',
-          en: 'Excessive verbosity and redundant comments that explain the obvious.'
-        },
-        'GPT-Style Παπατζιλίκι': {
-          el: 'Ανίχνευση συγκεκριμένων εκφράσεων και "ευγενικών" δομών τυπικών για AI.',
-          en: 'Specific catchphrases and "polite" structural markers common in AI outputs.'
-        },
-        'Ύποπτο Drift Κώδικα': {
-          el: 'Απότομες αλλαγές στο στυλ γραφής μέσα στο ίδιο αρχείο.',
-          en: 'Sudden shifts in coding style or mental model within the same file.'
-        },
-        'Template Integrity': {
-          el: 'Έλεγχος αν ο χρήστης τήρησε τις προδιαγραφές και τη δομή του template του καθηγητή.',
-          en: 'Verifies if the user maintained the required structure and components of the provided template.'
-        }
-      };
-
+      report += `${summary}\n\n`;
+      report += `--- \n\n`;
+      report += `## 📊 ${t.pillarAudit}\n\n`;
+      report += `| ${t.pillarLabel} | ${t.scoreLabel} |\n`;
+      report += `| :--- | :--- |\n`;
       analysisResult.pillars.forEach(p => {
-        const info = pillarDescs[p.pillar] || { el: 'Ανάλυση στατικών μοτίβων.', en: 'Static pattern analysis.' };
-        const desc = lang === 'EL' ? info.el : info.en;
-        report += `#### 🔹 ${formatPillarName(p.pillar)}\n`;
-        report += `- **Score:** ${Math.round(p.score)}/100\n`;
-        report += `- **Findings:** ${p.findings.length}\n`;
-        report += `- **Focus:** ${desc}\n\n`;
+        report += `| ${formatPillarName(p.pillar)} | ${Math.round(p.score)}% |\n`;
       });
+      report += `\n\n`;
 
-      report += `---\n\n`;
-      report += `## 📝 ${lang === 'EL' ? 'ΑΡΧΕΙΟ ΑΠΟΔΕΙΞΕΩΝ (FINDINGS)' : 'EVIDENCE LOG (FINDINGS)'}\n\n`;
+      report += `## 📝 ${t.evidenceLog}\n\n`;
       
-      if (analysisResult.pillars.some(p => p.findings.length > 0)) {
+      const allFindings = analysisResult.pillars.flatMap(p => p.findings);
+      if (allFindings.length > 0) {
         analysisResult.pillars.forEach(p => {
           if (p.findings.length > 0) {
             report += `### 🏗️ ${formatPillarName(p.pillar)}\n`;
@@ -222,19 +195,20 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             report += `\n`;
           }
         });
-      } else {
-        report += `*${lang === 'EL' ? 'Δεν βρέθηκαν επιβαρυντικά στοιχεία. Το υποκείμενο είναι καθαρό.' : 'No incriminating evidence found. Subject is clean.'}*\n\n`;
+      }
+      if (allFindings.length === 0) {
+        report += `*${t.noEvidenceFound}*\n\n`;
       }
 
-      report += `---\n`;
-      report += `*${lang === 'EL' ? 'Πιστοποιήθηκε από το Papatzis Spotter. Φτιαγμένο για ανθρώπους, από ανθρώπους.' : 'Verified by Papatzis Spotter. Built for humans, by humans.'} 🦀🐍*\n`;
+      report += `\n---\n`;
+      report += `*${t.verifiedBy} 🦀🐍*\n`;
 
       await writeTextFile(path, report);
-      addToast(lang === 'EL' ? 'Ο φάκελος εξήχθη επιτυχώς!' : 'Case file exported successfully!', 'success');
+      addToast(t.exportSuccess, 'success');
     } catch (error) {
       console.error('Export failed:', error);
       const errorMsg = error instanceof Error ? error.message : String(error);
-      addToast(lang === 'EL' ? `Η εξαγωγή απέτυχε: ${errorMsg}` : `Export failed: ${errorMsg}`, 'error');
+      addToast(`${t.exportFailed}: ${errorMsg}`, 'error');
     }
   };
 
@@ -250,17 +224,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     return 'var(--slop)';
   };
 
-  const getScoreLabel = () => {
-    const rawLabel = analysisResult.interpretation;
-    const localizedLabel = t.tiers[rawLabel as keyof typeof t.tiers] || rawLabel;
-    
-    // Add icon prefix back
-    if (rawLabel.includes('Τίμιος')) return `🏆 ${localizedLabel}`;
-    if (rawLabel.includes('Επαγγελματίας')) return `⚠️ ${localizedLabel}`;
-    if (rawLabel.includes('Ψιλικατζής')) return `🔴 ${localizedLabel}`;
-    if (rawLabel.includes('Ερασιτέχνης')) return `💀 ${localizedLabel}`;
-    return localizedLabel;
-  };
+
 
   const totalFindings = analysisResult.pillars.reduce((acc, p) => acc + p.findings.length, 0);
   const resultsArray = Array.isArray(auditResults) ? auditResults : [];
@@ -301,7 +265,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                 title="Back to Audit Results"
               >
                 <ArrowRight size={14} strokeWidth={1.75} className="rotate-180" />
-                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">Back to Audit</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">{t.backToAudit}</span>
               </button>
             )}
           </div>
@@ -390,7 +354,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
               )}
             </div>
             <p className="text-xs text-text-disabled font-medium opacity-50 max-w-sm md:text-right">
-              Αναλυτικό αρχείο καταγραφής AI μοτίβων και προτάσεις βελτίωσης από τη μηχανή του Papatzis Spotter.
+              {t.caseFileDesc}
             </p>
           </div>
 
@@ -505,7 +469,7 @@ export const Dashboard: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
           className="flex items-center space-x-3 px-8 py-3.5 bg-accent-primary text-white font-bold rounded-2xl hover:scale-[1.03] active:scale-95 transition-all duration-300 shadow-lg shadow-accent-primary/15 hover:shadow-accent-primary/30"
         >
           <Code2 size={18} strokeWidth={1.75} />
-          <span className="uppercase tracking-[0.15em] text-[11px]">ΠΡΟΒΟΛΗ ΣΤΟΝ EDITOR</span>
+          <span className="uppercase tracking-[0.15em] text-[11px]">{t.viewInEditor}</span>
         </button>
 
         <button 

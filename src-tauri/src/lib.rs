@@ -15,6 +15,7 @@ struct SlopSettings {
     sensitivity: i32,
     experimental: bool,
     humanity_shield: bool,
+    ui_lang: String,
 }
 
 #[derive(Serialize, Deserialize)]

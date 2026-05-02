@@ -5,8 +5,8 @@ from analyzer.base import BaseAnalyzer
 from analyzer.models import Finding
 
 class IntegrityAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str, template_content: str = None):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, template_content: str = None, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
         self.template_content = template_content
         self.template_identifiers = self._extract_template_identifiers() if template_content else set()
@@ -97,15 +97,15 @@ class IntegrityAnalyzer(BaseAnalyzer):
         
         for identifier in self.template_identifiers:
             if identifier not in found_identifiers:
+                from analyzer.i18n import translate
+                t_data = translate("integrity.violation", ui_lang=self.ui_lang, identifier=identifier)
                 self.findings.append(Finding(
                     type="integrity.violation",
                     file=file_path,
                     line=1,
                     severity=4.0,
                     confidence=1.0,
-                    message=f"Template Violation: Missing '{identifier}'",
-                    human_alternative=f"Μην διαγράφεις ή μετονομάζεις τα στοιχεία του template. Το '{identifier}' είναι απαραίτητο για την ορθή λειτουργία/βαθμολόγηση.",
-                    rationale="Ο καθηγητής παρέχει ένα template για συγκεκριμένο λόγο. Η αλλοίωση της δομής του (π.χ. διαγραφή απαραίτητων headers ή συναρτήσεων) συχνά υποδηλώνει απρόσεκτη χρήση AI που 'ξαναέγραψε' όλο τον κώδικα από την αρχή."
+                    **t_data
                 ))
 
         return self.findings

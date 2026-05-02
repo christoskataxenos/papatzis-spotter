@@ -46,6 +46,12 @@ ENV/
 test_results.txt
 results.json
 adversarial_results*.json
+analyzer-dist/
+Papatzis-Portable/
+launcher/venv/
+launcher/build/
+launcher/dist/
+analyzer/venv/
 
 # --- Rust / Tauri ---
 src-tauri/target/

@@ -11,12 +11,8 @@ import { Language, translations } from './lib/i18n';
 import { 
   Home, 
   Code2, 
-  HelpCircle,
   Settings as SettingsIcon,
   Search,
-  Globe,
-  Moon,
-  Sun,
   ArrowRight,
   BookOpen
 } from 'lucide-react';
@@ -79,7 +75,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, shortcut }: SidebarIt
 
 /* ─── Wizard Landing Page ─── */
 const WizardView: React.FC<{ lang: Language }> = ({ lang }) => {
-  const { setView, clearAnalysis, theme } = useAppStore();
+  const { setView, clearAnalysis } = useAppStore();
   const t = translations[lang];
   
   return (
@@ -125,7 +121,7 @@ const WizardView: React.FC<{ lang: Language }> = ({ lang }) => {
 
 /* ─── Main App ─── */
 function App() {
-  const { currentView, setView, clearAnalysis, theme, setTheme, lang, setLang } = useAppStore();
+  const { currentView, setView, clearAnalysis, theme, lang } = useAppStore();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const t = translations[lang];
 

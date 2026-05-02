@@ -1,5 +1,6 @@
 import re
 from typing import List
+from tree_sitter import Tree
 from analyzer.models import Finding
 
 class GenericAnalyzer:
@@ -19,8 +20,9 @@ class GenericAnalyzer:
             "returns the result"
         ]
 
-    def analyze(self, content: str, file_path: str) -> List[Finding]:
+    def analyze(self, tree: Tree, source_code: bytes, file_path: str) -> List[Finding]:
         self.findings = []
+        content = source_code.decode('utf8', errors='ignore')
         lines = content.splitlines()
         
         # Εντοπισμός σχολίων (Generic: #, //, /* */)

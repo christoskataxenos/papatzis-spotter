@@ -10,25 +10,25 @@ def parser():
 
 @pytest.fixture
 def analyzer():
-    return CommentAnalyzer('python')
+    return CommentAnalyzer('python', ui_lang='EL')
 
 def test_ai_style_phrases(parser, analyzer):
     code = b"# This function calculates the sum\ndef add(a, b): return a + b"
     tree = parser.parse(code)
     findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("GPT-Style Παπατζιλίκι" in f.message for f in findings)
+    assert any("GPT-Style Φλύαρα Σχόλια" in f.message for f in findings)
 
 def test_obvious_comments(parser, analyzer):
     code = b"def loop():\n    # loop 10 times\n    for i in range(10): pass"
     tree = parser.parse(code)
     findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("αυτονόητο syntax" in f.message for f in findings)
+    assert any("Περιττά Σχόλια Σύνταξης" in f.message for f in findings)
 
 def test_wikipedia_style(parser, analyzer):
     code = b"# This algorithm is a fundamental approach in computer science that allows efficient traversal of data structures without local context."
     tree = parser.parse(code)
     findings = analyzer.analyze(tree, code, 'test.py')
-    assert any("Θεωρητική ανάλυση" in f.message for f in findings)
+    assert any("Wikipedia-Style Slop" in f.message for f in findings)
 
 def test_human_exclusions(parser, analyzer):
     code = b"# TODO: fix this\n# wtf?\n# lol cursed code"

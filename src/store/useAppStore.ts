@@ -62,12 +62,18 @@ export const useAppStore = create<AppState>((set) => ({
     toasts: [],
     auditResults: [],
     isAuditing: false,
-    theme: 'dark',
-    lang: 'EL',
+    lang: (localStorage.getItem('papatzis_lang') as 'EL' | 'EN') || 'EL',
+    theme: (localStorage.getItem('papatzis_theme') as 'dark' | 'light') || 'dark',
 
     setView: (view) => set({ currentView: view }),
-    setTheme: (theme) => set({ theme }),
-    setLang: (lang) => set({ lang }),
+    setTheme: (theme) => {
+        localStorage.setItem('papatzis_theme', theme);
+        set({ theme });
+    },
+    setLang: (lang) => {
+        localStorage.setItem('papatzis_lang', lang);
+        set({ lang });
+    },
     setAnalysisResult: (result) => set({ analysisResult: result }),
     setAnalyzing: (loading) => set((state) => ({ 
         isAnalyzing: typeof loading === 'function' ? loading(state.isAnalyzing) : loading 

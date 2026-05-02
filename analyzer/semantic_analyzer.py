@@ -6,10 +6,16 @@ from analyzer.base import BaseAnalyzer
 from analyzer.models import Finding
 
 class SemanticAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         # Λέξεις που αγνοούμε στην ανάλυση ομοιότητας
-        self.stop_words = {"def", "class", "return", "if", "else", "for", "while", "import", "from", "as", "try", "except", "self", "this", "the", "of", "and"}
+        self.stop_words = {
+            "def", "class", "return", "if", "else", "elif", "for", "while", "import", "from", "as", "try", "except", "finally", 
+            "self", "this", "the", "of", "and", "or", "in", "is", "not", "with", "lambda", "yield", "pass", "None", "True", "False",
+            "select", "insert", "update", "delete", "where", "from", "into", "values", "create", "table",
+            "stdio", "stdlib", "math", "string", "malloc", "free", "strlen", "printf", "scanf",
+            "os", "sys", "json", "re", "datetime", "append", "join", "split", "open"
+        }
 
     def _get_word_freq(self, text: str) -> Dict[str, int]:
         # Χρήση regex για εξαγωγή λέξεων και split underscores για snake_case
@@ -67,29 +73,29 @@ class SemanticAnalyzer(BaseAnalyzer):
                 
                 # Πολύ υψηλή ομοιότητα μεταξύ διαφορετικών functions
                 if avg_sim > 0.55: # Μειώσαμε το threshold για μεγαλύτερη ευαισθησία (Ph5)
+                    from analyzer.i18n import translate
+                    t_data = translate("semantic.high_uniformity", ui_lang=self.ui_lang, avg_sim=f"{avg_sim:.2%}")
                     self.findings.append(Finding(
                         type="semantic.high_uniformity",
                         file=file_path,
-                        line=1,
+                        line=0,
                         severity=0.7,
                         confidence=0.7,
-                        message=f"High Semantic Uniformity ({avg_sim:.2%}): Οι συναρτήσεις είναι ύποπτα παρόμοιες στη δομή/ορολογία.",
-                        human_alternative="Ενισχύστε τη μοναδικότητα και την εξειδίκευση κάθε συνάρτησης.",
-                        rationale="Το AI συχνά 'ανακυκλώνει' τα ίδια λεκτικά μοτίβα και δομές ονοματοδοσίας σε όλες τις συναρτήσεις του."
+                        **t_data
                     ))
                     
                 # Ανίχνευση "Template Functions" (Ph5)
                 # Αν πολλές συναρτήσεις έχουν ακριβώς το ίδιο πλήθος λέξεων/δομή
                 if any(sim > 0.95 for sim in similarities):
+                    from analyzer.i18n import translate
+                    t_data = translate("semantic.template_functions", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="semantic.template_functions",
                         file=file_path,
-                        line=1,
+                        line=0,
                         severity=0.8,
                         confidence=0.9,
-                        message="Template Generated Functions: Εντοπίστηκαν συναρτήσεις-καλούπια.",
-                        human_alternative="Αποφύγετε το copy-paste logic με μικρές αλλαγές.",
-                        rationale="Τα LLMs παράγουν συχνά σειρές από συναρτήσεις που είναι πανομοιότυπες, αλλάζοντας μόνο 1-2 μεταβλητές."
+                        **t_data
                     ))
 
         return self.findings

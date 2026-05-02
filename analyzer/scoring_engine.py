@@ -3,17 +3,20 @@ from typing import List, Dict
 from analyzer.models import Finding, PillarScore, AnalysisResult
 
 class ScoringEngine:
-    def __init__(self, sensitivity=50, humanity_shield=True):
+    def __init__(self, sensitivity=50, humanity_shield=True, ui_lang="EN"):
         # Wider multiplier range: 0.2x to 3.2x
         self.sensitivity_multiplier = 0.2 + (sensitivity / 33.3) 
         self.humanity_shield = humanity_shield
+        self.ui_lang = ui_lang.upper() if ui_lang else "EN"
+        
+        # Pillar display names (Internal keys for logic, display from i18n/FE)
         self.pillar_config = {
-            "ast_uniformity": {"weight": 0.20, "desc": "Ρομποτική Ομοιομορφία"},
-            "statistical": {"weight": 0.20, "desc": "Στατιστική Φλυαρία"},
-            "naming": {"weight": 0.15, "desc": "Βαφτιστικό Slop"},
-            "comments": {"weight": 0.10, "desc": "GPT-Style Παπατζιλίκι"},
-            "drift": {"weight": 0.15, "desc": "Ύποπτο Drift Κώδικα"},
-            "integrity": {"weight": 0.20, "desc": "Template Integrity"}
+            "ast_uniformity": {"weight": 0.20},
+            "statistical": {"weight": 0.20},
+            "naming": {"weight": 0.15},
+            "comments": {"weight": 0.10},
+            "drift": {"weight": 0.15},
+            "integrity": {"weight": 0.20}
         }
 
     def calculate(self, findings: List[Finding]) -> AnalysisResult:
@@ -59,11 +62,19 @@ class ScoringEngine:
         
         final_score = min(100.0, total_score)
         
-        # --- Papatzis Hierarchy (v3.0) ---
-        if final_score < 10: interp = "Τίμιος Κώδικας"
-        elif final_score < 30: interp = "Ψιλικατζής"
-        elif final_score < 60: interp = "Επαγγελματίας Παπατζής"
-        else: interp = "Ερασιτέχνης (100% Slop)"
+        # --- Papatzis Hierarchy (v3.0) - Localized ---
+        from analyzer.i18n import translate
+        if final_score < 10:
+            tier_key = "scoring.honest_code"
+        elif final_score < 30:
+            tier_key = "scoring.petty_scammer"
+        elif final_score < 60:
+            tier_key = "scoring.professional_papatzis"
+        else:
+            tier_key = "scoring.amateur_slop"
+            
+        t_data = translate(tier_key, ui_lang=self.ui_lang)
+        interp = t_data["message"]
         
         return AnalysisResult(
             final_score=round(final_score, 1), 

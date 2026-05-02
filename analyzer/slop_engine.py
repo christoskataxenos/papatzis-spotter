@@ -60,72 +60,102 @@ class SlopEngine:
             if ind in content: scores["c"] += 2
             
         if re.search(r"\bdef\s+", content): scores["python"] += 10
-        if re.search(r"\bimport\s+", content): scores["python"] += 10
-        if re.search(r"\bclass\s+", content): scores["python"] += 10
+        if "self." in content: scores["python"] += 5
+        if "from " in content and " import " in content: scores["python"] += 5
         
-        py_weak = ["elif ", "lambda ", "if __name__ ==", "print(", "]:", "):\n", "    "]
+        py_weak = ["elif ", "lambda ", "if __name__ ==", "print(", "]:", "):\n", "    ", "import ", "class "]
         for ind in py_weak:
             if ind in content: scores["python"] += 2
 
-        if scores["c"] > scores["python"]:
+        if scores["c"] > scores["python"] and scores["c"] >= 5:
             return "c"
-        elif scores["python"] > scores["c"]:
+        elif scores["python"] > scores["c"] and scores["python"] >= 5:
             return "python"
             
-        return "python"
+        return "generic"
 
     def analyze(self, content: str, lang: str, file_path: str, settings: Dict = None, template_content: str = None) -> AnalysisResult:
         lang = lang.lower() if lang else "auto"
-        if lang in ["auto", "unknown", "detect", "generic"]:
+        if lang in ["auto", "unknown", "detect"]:
             lang = self.detect_language(content, file_path)
             
         try:
+            ui_lang = settings.get("ui_lang", "EN") if settings else "EN"
+            from analyzer.i18n import translate
+
             findings = []
+            
+            # Map "generic" to "GENERIC (Experimental)" for the info card
+            display_lang = lang.upper()
+            if lang == "generic":
+                display_lang = "GENERIC (Experimental)"
+
+            info_t = translate("statistical.info", ui_lang=ui_lang, lang=display_lang)
             findings.append(Finding(
                 type="statistical.info",
                 file=file_path,
                 line=0,
                 severity=0,
                 confidence=1.0,
-                message=f"Engine Mode: {lang.upper()}",
-                human_alternative="",
-                rationale=f"Analysis performed using {lang} specialized rules."
+                **info_t
             ))
 
             # --- 0. Template Pass (Dynamic Whitelisting & Integrity) ---
             template_identifiers = set()
+            user_lines = set()
             if template_content:
-                # 1. Dynamic Whitelisting
                 template_identifiers = set(re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', template_content))
+                # Identify lines modified by user
+                diff = list(difflib.ndiff(template_content.splitlines(), content.splitlines()))
+                line_idx = 0
+                for line in diff:
+                    if line.startswith('  '): line_idx += 1
+                    elif line.startswith('+ '):
+                        line_idx += 1
+                        user_lines.add(line_idx)
+            
+            # --- 1. Fast Regex Pass ---
+            buzz_matches = [b for b in self.buzzwords if b in content.lower()]
+            if buzz_matches:
+                from analyzer.i18n import translate
+                t_data = translate("statistical.buzzwords", ui_lang=ui_lang, words=", ".join(buzz_matches))
+                findings.append(Finding(
+                    type="statistical.buzzwords",
+                    file=file_path,
+                    line=0,
+                    severity=len(buzz_matches) * 0.1,
+                    confidence=0.8,
+                    **t_data
+                ))
                 
                 # 2. Integrity Check (difflib)
-                import difflib
-                t_lines = [line.strip() for line in template_content.splitlines() if line.strip() and "//" not in line and "/*" not in line]
-                c_lines = [line.strip() for line in content.splitlines() if line.strip()]
-                
-                missing_essential = []
-                for t_line in t_lines:
-                    if t_line not in c_lines:
-                        # Allow some flexibility for simple lines, but flag complex ones
-                        if len(t_line) > 10 or "(" in t_line:
-                            missing_essential.append(t_line)
-                
-                if missing_essential:
-                    findings.append(Finding(
-                        type="template.integrity",
-                        file=file_path,
-                        line=1,
-                        severity=4.0, # High severity for template violation
-                        confidence=1.0,
-                        message=f"Template Integrity Violation: {len(missing_essential)} essential lines missing.",
-                        human_alternative="Επαναφέρετε τη δομή του template που σας δόθηκε. Μην αλλάζετε τα ονόματα των συναρτήσεων ή τη δομή των structs.",
-                        rationale=f"Ο καθηγητής έδωσε συγκεκριμένο template. Η αλλαγή του προδίδει προσπάθεια 'προσαρμογής' του κώδικα που παρήγαγε το AI στο δικό σας αρχείο, ή απλή αδιαφορία για τις οδηγίες."
-                    ))
+                if template_content:
+                    t_lines = [line.strip() for line in template_content.splitlines() if line.strip() and "//" not in line and "/*" not in line]
+                    c_lines = [line.strip() for line in content.splitlines() if line.strip()]
+                    
+                    missing_essential = []
+                    for t_line in t_lines:
+                        if t_line not in c_lines:
+                            # Allow some flexibility for simple lines, but flag complex ones
+                            if len(t_line) > 10 or "(" in t_line:
+                                missing_essential.append(t_line)
+                    
+                    if missing_essential:
+                        from analyzer.i18n import translate
+                        t_data = translate("template.integrity", ui_lang=ui_lang, count=len(missing_essential))
+                        findings.append(Finding(
+                            type="template.integrity",
+                            file=file_path,
+                            line=0, # High severity for template violation
+                            severity=4.0,
+                            confidence=1.0,
+                            **t_data
+                        ))
 
             # --- Template Processing & Line Mapping ---
             user_lines = set()
             if template_content:
-                integrity = IntegrityAnalyzer(lang, template_content)
+                integrity = IntegrityAnalyzer(lang, template_content, ui_lang=ui_lang)
                 template_identifiers = integrity.template_identifiers
                 
                 t_lines = template_content.splitlines()
@@ -136,40 +166,42 @@ class SlopEngine:
                         for line_idx in range(j1, j2):
                             user_lines.add(line_idx + 1)
                 
-                lang_pkg = tree_sitter_language_pack.get_language(lang)
-                if lang not in self.parsers: self.parsers[lang] = Parser(lang_pkg)
-                tree = self.parsers[lang].parse(content.encode('utf8', errors='replace'))
+                ts_lang = lang if lang != "generic" else "python"
+                lang_pkg = tree_sitter_language_pack.get_language(ts_lang)
+                if ts_lang not in self.parsers: self.parsers[ts_lang] = Parser(lang_pkg)
+                tree = self.parsers[ts_lang].parse(content.encode('utf8', errors='replace'))
                 findings.extend(integrity.analyze(tree, content.encode('utf8', errors='replace'), file_path))
 
             found_indicators = set() 
             sensitivity = settings.get("sensitivity", 50) if settings else 50
             humanity_shield = settings.get("humanity_shield", True) if settings else True
             
-            self.scorer = ScoringEngine(sensitivity=sensitivity, humanity_shield=humanity_shield)
+            self.scorer = ScoringEngine(sensitivity=sensitivity, humanity_shield=humanity_shield, ui_lang=ui_lang)
 
             # --- 1. Global Regex Pass ---
             for word in self.buzzwords:
                 matches = re.finditer(re.escape(word), content, re.IGNORECASE)
-                for m in matches:
-                    if word not in found_indicators:
-                        line_num = content.count('\n', 0, m.start()) + 1
-                        if template_content and line_num not in user_lines:
-                            continue
+                for match in matches:
+                    line_num = content.count('\n', 0, match.start()) + 1
+                    if template_content and line_num not in user_lines:
+                        continue
 
-                        findings.append(Finding(
-                            type="comments.ai_style", file=file_path, line=line_num, severity=2.5, confidence=1.0,
-                            message=f"GPT Buzzword: '{word}'", 
-                            human_alternative="Αφαίρεσε τους βαρύγδουπους όρους. Αντί για 'synergistic solution', πες 'data_merger'. Η ακρίβεια μετράει περισσότερο από το marketing.", 
-                            rationale="Λέξεις όπως 'synergistic', 'comprehensive' ή 'holistic' χρησιμοποιούνται από το GPT για να 'γεμίσουν' το κείμενο και να ακούγονται εντυπωσιακά. Στον κώδικα όμως, θέλουμε ακρίβεια, όχι marketing."
-                        ))
-                        found_indicators.add(word)
+                    from analyzer.i18n import translate
+                    t_data = translate("comments.ai_style", ui_lang=ui_lang, word=word)
+                    findings.append(Finding(
+                        type="comments.ai_style", file=file_path, line=line_num, severity=2.5, confidence=1.0,
+                        **t_data
+                    ))
+                    found_indicators.add(word)
             
             if humanity_shield:
                 for marker in self.human_markers:
                     if marker in content:
+                        from analyzer.i18n import translate
+                        t_data = translate("humanity.shield", ui_lang=ui_lang, marker=marker)
                         findings.append(Finding(
-                            type="humanity.shield", file=file_path, line=1, severity=1.5, confidence=1.0,
-                            message=f"Human Marker: '{marker}'", human_alternative="", rationale="Evidence of human frustration/intent."
+                            type="humanity.shield", file=file_path, line=0, severity=1.5, confidence=1.0,
+                            **t_data
                         ))
 
             for m in self.metrics_regex.finditer(content):
@@ -178,46 +210,54 @@ class SlopEngine:
                 if metric_name not in found_indicators:
                     line_num = content.count('\n', 0, m.start()) + 1
                     if template_content and line_num not in user_lines: continue
+                    from analyzer.i18n import translate
+                    t_data = translate("statistical.fake_metric", ui_lang=ui_lang, metric_name=metric_name)
                     findings.append(Finding(
                         type="statistical.fake_metric", file=file_path, line=line_num, severity=3.0, confidence=1.0,
-                        message=f"Fake Metric Detected: '{metric_name}'", 
-                        human_alternative="Αφαίρεσε τα ψεύτικα metrics. Αν χρειάζεσαι πραγματικό logging για το σύστημά σου, χρησιμοποίησε standard βιβλιοθήκες (όπως το logging της Python).", 
-                        rationale="Το AI συχνά 'εφεύρει' μεταβλητές όπως `ai_confidence_score` ή `accuracy_metric` για να κάνει τον κώδικα να φαίνεται πιο 'έξυπνος' ή 'επιστημονικός', χωρίς αυτές να έχουν καμία πραγματική λειτουργία."
+                        **t_data
                     ))
                     found_indicators.add(metric_name)
             
             logic_match = self.stupid_logic_regex.search(content)
             if logic_match:
+                from analyzer.i18n import translate
+                t_data = translate("statistical.stupid_logic", ui_lang=ui_lang)
                 findings.append(Finding(
                     type="statistical.stupid_logic", file=file_path, line=1, severity=3.5, confidence=1.0,
-                    message="Anti-pattern Logic Detected", 
-                    human_alternative="Χρησιμοποίησε τις σύγχρονες δυνατότητες της γλώσσας. Για παράδειγμα, αντί για `str(x)[-1]`, χρησιμοποίησε μαθηματικούς τελεστές ή built-in functions.", 
-                    rationale="Το AI μερικές φορές προτείνει 'τεμπέλικες' λύσεις που φαίνονται σωστές αλλά είναι κακές προγραμματιστικά (π.χ. μετατροπή αριθμού σε string για να βρεις το τελευταίο ψηφίο). Ένας άνθρωπος προγραμματιστής ξέρει να χρησιμοποιεί τα σωστά εργαλεία."
+                    **t_data
                 ))
 
             async_match = self.async_slop_regex.search(content)
             if async_match:
+                from analyzer.i18n import translate
+                t_data = translate("statistical.async_slop", ui_lang=ui_lang)
                 findings.append(Finding(
                     type="statistical.async_slop", file=file_path, line=1, severity=3.5, confidence=1.0,
-                    message="Async Enterprise Slop", human_alternative="Remove fake delays.", rationale="AI boilerplate async logic."
+                    **t_data
                 ))
 
             # --- 2. AST Pass ---
-            lang_pkg = tree_sitter_language_pack.get_language(lang)
-            if lang not in self.parsers: self.parsers[lang] = Parser(lang_pkg)
-            tree = self.parsers[lang].parse(content.encode('utf8', errors='replace'))
+            ts_lang = lang if lang != "generic" else "python"
+            lang_pkg = tree_sitter_language_pack.get_language(ts_lang)
+            if ts_lang not in self.parsers: self.parsers[ts_lang] = Parser(lang_pkg)
+            tree = self.parsers[ts_lang].parse(content.encode('utf8', errors='replace'))
             
             analyzers = [
-                NamingAnalyzer(lang, template_identifiers=template_identifiers),
-                SimilarityAnalyzer(lang),
-                SuspicionAnalyzer(lang),
-                StructuralAnalyzer(lang),
-                CommentAnalyzer(lang),
-                RedundancyAnalyzer(lang),
-                LogicAnalyzer(lang),
-                StatisticalAnalyzer(lang),
-                SemanticAnalyzer(lang)
+                NamingAnalyzer(ts_lang, ui_lang=ui_lang, template_identifiers=template_identifiers),
+                SimilarityAnalyzer(ts_lang, ui_lang=ui_lang),
+                SuspicionAnalyzer(ts_lang, ui_lang=ui_lang),
+                StructuralAnalyzer(ts_lang, ui_lang=ui_lang),
+                CommentAnalyzer(ts_lang, ui_lang=ui_lang),
+                RedundancyAnalyzer(ts_lang, ui_lang=ui_lang),
+                LogicAnalyzer(ts_lang, ui_lang=ui_lang),
+                StatisticalAnalyzer(lang, ui_lang=ui_lang),
+                SemanticAnalyzer(ts_lang, ui_lang=ui_lang)
             ]
+            
+            if lang == "generic":
+                from analyzer.generic_analyzer import GenericAnalyzer
+                analyzers.append(GenericAnalyzer()) # GenericAnalyzer.analyze has different signature
+
             
             for analyzer in analyzers:
                 try:
@@ -232,30 +272,30 @@ class SlopEngine:
                                     f.severity *= 2.0
                     findings.extend(new_findings)
                 except Exception as e:
+                    from analyzer.i18n import translate
+                    t_data = translate("statistical.error", ui_lang=ui_lang, analyzer=type(analyzer).__name__, error=str(e))
                     findings.append(Finding(
                         type="statistical.error",
                         file=file_path,
                         line=0,
                         severity=0.5,
                         confidence=1.0,
-                        message=f"Analyzer Error ({type(analyzer).__name__}): {str(e)}",
-                        human_alternative="",
-                        rationale=f"One of the specialized analyzers failed. The rest of the results are still valid."
+                        **t_data
                     ))
 
             return self.scorer.calculate(findings)
         except Exception as e:
             import traceback
             error_msg = f"Analysis Error: {str(e)}\n{traceback.format_exc()}"
+            from analyzer.i18n import translate
+            t_data = translate("critical_error", ui_lang=ui_lang, error=str(e), trace=error_msg)
             return self.scorer.calculate([Finding(
                 type="statistical.error", 
                 file=file_path, 
                 line=1, 
                 severity=5.0,
                 confidence=1.0, 
-                message=f"Critical Analysis Error: {str(e)}", 
-                human_alternative="Διαπιστώθηκε εσωτερικό σφάλμα κατά την ανάλυση. Ελέγξτε αν ο κώδικας είναι έγκυρος για την επιλεγμένη γλώσσα.", 
-                rationale=error_msg
+                **t_data
             )])
 
     def run(self):

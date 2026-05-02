@@ -88,6 +88,13 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 
 ---
 
+## Supported Languages
+
+- **C & Python**: Fully supported with deep AST (Abstract Syntax Tree) analysis.
+- **Generic Code**: **Experimental** support for other languages (Java, JavaScript, Pseudocode, etc.) using statistical and regex-based patterns. Results may vary.
+
+---
+
 ## Installation & Setup
 
 ### Automated Start (Windows)

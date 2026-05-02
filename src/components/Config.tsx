@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Zap, Sliders, Save, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Shield, Save, RotateCcw, Sliders, Zap, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 
 import { Language, translations } from '../lib/i18n';
@@ -31,7 +31,7 @@ const Toggle = ({ enabled, onToggle, activeColor = 'bg-human', lang = 'EL' }: To
   );
 };
 
-export const Config: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
+export const Config: React.FC<{ lang?: Language }> = () => {
   const { addToast, theme, setTheme, lang: storeLang, setLang } = useAppStore();
   const t = translations[storeLang];
   const [sensitivity, setSensitivity] = useState(75);
@@ -163,7 +163,7 @@ export const Config: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
               <div className="p-2 bg-accent-primary/[0.08] rounded-lg">
                 <Sliders size={16} className="text-accent-primary" />
               </div>
-              <h3 className="font-bold text-text-primary text-sm">{storeLang === 'EL' ? 'Θέμα Εμφάνισης' : 'Display Theme'}</h3>
+              <h3 className="font-bold text-text-primary text-sm">{t.displayTheme}</h3>
             </div>
             <div className="pl-11 flex items-center space-x-4">
                <button 
@@ -216,7 +216,7 @@ export const Config: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             className="flex items-center space-x-2 px-4 py-2 bg-surface-elevated border border-border-default rounded-xl hover:bg-surface-hover transition-all duration-200 text-text-secondary hover:text-text-primary text-[11px] font-bold"
           >
             <RotateCcw size={14} />
-            <span>{storeLang === 'EL' ? 'Επαναφορά' : 'Reset to Defaults'}</span>
+            <span>{t.resetToDefaults}</span>
           </button>
           
           <button 

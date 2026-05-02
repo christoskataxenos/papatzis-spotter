@@ -21,7 +21,8 @@ a = Analysis(
         'analyzer.suspicion_analyzer',
         'analyzer.integrity_analyzer',
         'analyzer.models',
-        'analyzer.base'
+        'analyzer.base',
+        'analyzer.i18n'
     ],
     hookspath=[],
     hooksconfig={},

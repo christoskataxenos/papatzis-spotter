@@ -6,8 +6,8 @@ from typing import List
 import re
 
 class LogicAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         if language_id == "c":
             self.lang = tree_sitter_language_pack.get_language(language_id)
             
@@ -89,12 +89,12 @@ class LogicAnalyzer(BaseAnalyzer):
                             if "'\\0'" in text or "0" in text:
                                 line = node.start_point[0] + 1
                                 ast_found_lines.add(line)
+                                from analyzer.i18n import translate
+                                t_data = translate("logic.manual_strlen", ui_lang=self.ui_lang)
                                 self.findings.append(Finding(
                                     type="logic.manual_strlen",
                                     file=file_path, line=line, severity=3.5, confidence=0.95,
-                                    message="Algorithmic Slop: Χειροκίνητο strlen loop (AST).",
-                                    human_alternative="Χρησιμοποίησε την `strlen()` από την <string.h>.",
-                                    rationale="Το AI γράφει δικά του loops για null terminator (line 50-57 pattern)."
+                                    **t_data
                                 ))
             except: pass
 
@@ -108,12 +108,12 @@ class LogicAnalyzer(BaseAnalyzer):
             for match in re.finditer(pattern, content):
                 line_num = content.count('\n', 0, match.start()) + 1
                 if line_num not in ast_found_lines:
+                    from analyzer.i18n import translate
+                    t_data = translate("logic.manual_strlen", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="logic.manual_strlen",
                         file=file_path, line=line_num, severity=3.5, confidence=0.9,
-                        message="Algorithmic Slop: Χειροκίνητο strlen loop (Regex).",
-                        human_alternative="Χρησιμοποίησε την `strlen()` από την <string.h>.",
-                        rationale="Το AI γράφει δικά του loops για null terminator."
+                        **t_data
                     ))
 
         # --- 2. Malloc detection ---
@@ -127,22 +127,22 @@ class LogicAnalyzer(BaseAnalyzer):
                         for node in nodes:
                             line = node.start_point[0] + 1
                             malloc_found_lines.add(line)
+                            from analyzer.i18n import translate
+                            t_data = translate("logic.heap_abuse", ui_lang=self.ui_lang)
                             self.findings.append(Finding(
                                 type="logic.heap_abuse",
                                 file=file_path, line=line, severity=4.0, confidence=0.85,
-                                message="Memory Slop: Άσκοπο malloc για τοπικό struct.",
-                                human_alternative="Δήλωσε το struct στο stack (π.χ. `DataManager data;`).",
-                                rationale="Το AI κάνει malloc τα πάντα (Java-style). Στη C, αυτό είναι σημάδι παραγωγής από LLM."
+                                **t_data
                             ))
             except: pass
 
         if not malloc_found_lines and "malloc(" in content:
+            from analyzer.i18n import translate
+            t_data = translate("logic.heap_abuse", ui_lang=self.ui_lang)
             self.findings.append(Finding(
                 type="logic.heap_abuse",
                 file=file_path, line=1, severity=3.0, confidence=0.6,
-                message="Memory Slop Detection (Regex Fallback)",
-                human_alternative="Check malloc usage.",
-                rationale="Detected malloc() call which might be unnecessary."
+                **t_data
             ))
 
         # --- 3. Java-fication (Struct Naming) ---
@@ -155,12 +155,12 @@ class LogicAnalyzer(BaseAnalyzer):
                         for node in nodes:
                             text = node.text.decode('utf8', errors='ignore').lower()
                             if any(x in text for x in ["entity", "result", "status", "response", "data", "info"]):
+                                from analyzer.i18n import translate
+                                t_data = translate("logic.javafication", ui_lang=self.ui_lang)
                                 self.findings.append(Finding(
                                     type="logic.javafication",
                                     file=file_path, line=node.start_point[0] + 1, severity=3.0, confidence=0.75,
-                                    message="Java-fication: Υπερβολικό naming struct.",
-                                    human_alternative="Χρησιμοποίησε πιο άμεση ονοματολογία (π.χ. 'User' αντί για 'UserDataEntity').",
-                                    rationale="Τα LLMs 'πακετάρουν' τα πάντα σε structs με Java-style ονόματα."
+                                    **t_data
                                 ))
             except: pass
 

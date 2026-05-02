@@ -6,8 +6,8 @@ from typing import List
 import re
 
 class CommentAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
 
         # Language specific queries
@@ -99,15 +99,15 @@ class CommentAnalyzer(BaseAnalyzer):
                     break
             
             if found_phrase:
+                from analyzer.i18n import translate
+                t_data = translate("comment.gpt_style", ui_lang=self.ui_lang, found_phrase=found_phrase)
                 self.findings.append(Finding(
                     type="comments.ai_style",
                     file=file_path,
                     line=node.start_point[0] + 1,
                     severity=2.5,
                     confidence=0.9,
-                    message=f"GPT-Style Παπατζιλίκι (Phrase: '{found_phrase}')",
-                    human_alternative="Αφαίρεσε τις 'ευγενικές' εισαγωγές. Αντί για 'This function calculates...', πες απλά '# Υπολογισμός ΦΠΑ'. Ο κώδικας δεν είναι έκθεση ιδεών, είναι εργαλείο.",
-                    rationale="Τα AI έχουν εκπαιδευτεί να είναι υπερβολικά ευγενικά και επεξηγηματικά. Φράσεις όπως 'This function handles...' ή 'The purpose of...' είναι κλασικά γεμίσματα (filler phrases) που ένας άνθρωπος σπάνια γράφει."
+                    **t_data
                 ))
                 continue
 
@@ -128,15 +128,15 @@ class CommentAnalyzer(BaseAnalyzer):
                     
                     if (comment_words & obvious_verbs) and any(op in next_code_line for op in code_operators):
                         if len(comment_words) < 20: 
+                            from analyzer.i18n import translate
+                            t_data = translate("comment.obvious", ui_lang=self.ui_lang)
                             self.findings.append(Finding(
                                 type="comments.obvious",
                                 file=file_path,
                                 line=node.start_point[0] + 1,
                                 severity=1.2,
                                 confidence=0.8,
-                                message="Syntax Translator (Obvious Comment)",
-                                human_alternative="Μην εξηγείς τι κάνει η γλώσσα προγραμματισμού (π.χ. 'αυξάνει το x'). Εξήγησε το *γιατί* χρειάζεται αυτή η αύξηση στο συγκεκριμένο σενάριο.",
-                                rationale="Είναι το κλασικό 'AI verbosity': το AI μεταφράζει κάθε γραμμή κώδικα σε απλά αγγλικά/ελληνικά. Ένας προγραμματιστής ξέρει τι κάνει το `x += 1`, δεν χρειάζεται να του το πεις."
+                                **t_data
                             ))
                             continue
 
@@ -152,26 +152,26 @@ class CommentAnalyzer(BaseAnalyzer):
             
             if (self._get_sentence_count(comment_text) >= 1 or word_count > 10) and len(matches) >= 1 and not self._has_technical_terms(comment_text):
                 if ":" in comment_text[:20] and word_count > 5:
+                    from analyzer.i18n import translate
+                    t_data = translate("comment.textbook_style", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="comments.textbook_style",
                         file=file_path,
                         line=node.start_point[0] + 1,
                         severity=1.8,
                         confidence=0.8,
-                        message="Textbook Style: Το σχόλιο μοιάζει με ορισμό από εγχειρίδιο.",
-                        human_alternative="Γράψτε πιο άμεσα σχόλια που αφορούν το συγκεκριμένο context του κώδικα.",
-                        rationale="Σχόλια που ξεκινούν με ορισμούς χωρίς να αναφέρονται στην υλοποίηση είναι δείγμα AI Slop."
+                        **t_data
                     ))
                 elif (self._get_sentence_count(comment_text) >= 2 or word_count > 15) and len(matches) >= 2:
+                    from analyzer.i18n import translate
+                    t_data = translate("comment.wikipedia_style", ui_lang=self.ui_lang)
                     self.findings.append(Finding(
                         type="comments.wikipedia_style",
                         file=file_path,
                         line=node.start_point[0] + 1,
                         severity=2.0,
                         confidence=0.7,
-                        message="Wikipedia-Style Slop (Verbiage)",
-                        human_alternative="Συνοψίστε τη θεωρία ή αφαίρεσέ την τελείως. Ο κώδικας πρέπει να είναι αυτο-επεξηγηματικός. Αν χρειάζεται Wikipedia για να τον καταλάβουμε, κάτι πάει λάθος.",
-                        rationale="Τα LLMs συχνά κάνουν 'κήρυγμα' μέσα στα σχόλια, εξηγώντας ολόκληρες θεωρίες ή βέλτιστες πρακτικές. Αυτό ονομάζεται Statistical Verbiage και είναι σήμα κατατεθέν του AI Slop."
+                        **t_data
                     ))
                 continue
 

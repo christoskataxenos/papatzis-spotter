@@ -20,7 +20,7 @@ import {
   BarChart3,
   RotateCcw,
   LayoutTemplate,
-  RefreshCcw
+  RefreshCcw,
 } from 'lucide-react';
 
 import { Language, translations } from '../lib/i18n';
@@ -62,7 +62,7 @@ interface GroupedFinding {
   }>;
 }
 
-const groupFindingsIntelligently = (findings: Finding[], lang: Language): GroupedFinding[] => {
+const groupFindingsIntelligently = (findings: Finding[]): GroupedFinding[] => {
   const groups: Record<string, GroupedFinding> = {};
   
   findings.forEach(f => {
@@ -74,26 +74,19 @@ const groupFindingsIntelligently = (findings: Finding[], lang: Language): Groupe
       groups[mainType] = { type: mainType, displayType, messages: [] };
     }
     
-    let msgGroup = groups[mainType].messages.find(m => m.text === f.message);
-    if (!msgGroup) {
-      msgGroup = { text: f.message, findings: [] };
-      groups[mainType].messages.push(msgGroup);
+    const group = groups[mainType];
+    const message = f.message;
+    
+    let existingMessage = group.messages.find(m => m.text === message);
+    if (!existingMessage) {
+      existingMessage = { text: message, findings: [] };
+      group.messages.push(existingMessage);
     }
-    msgGroup.findings.push(f);
+    existingMessage.findings.push(f);
   });
-  
-  // Sort messages inside each group by average severity
-  Object.values(groups).forEach(g => {
-    g.messages.sort((a, b) => {
-      const sevA = a.findings.reduce((acc, f) => acc + f.severity, 0) / a.findings.length;
-      const sevB = b.findings.reduce((acc, f) => acc + f.severity, 0) / b.findings.length;
-      return sevB - sevA; // High severity first
-    });
-  });
-  
+
   return Object.values(groups).sort((a, b) => {
-    // Put 'engine' or 'info' types at the bottom
-    if (a.type === 'engine' || a.type === 'info') return 1;
+    if (a.type === 'engine' || a.type === 'info') return -1;
     if (b.type === 'engine' || b.type === 'info') return -1;
     
     // Sort groups by their maximum severity finding
@@ -103,8 +96,7 @@ const groupFindingsIntelligently = (findings: Finding[], lang: Language): Groupe
   });
 };
 
-export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
-  const t = translations[lang];
+export const Analyzer: React.FC<{ lang?: Language }> = ({ lang: propLang }) => {
   const { 
     setAnalysisResult, 
     analysisResult, 
@@ -115,14 +107,17 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     analyzedCode,
     setAnalyzedCode,
     targetLine,
-    setTargetLine,
     templateCode,
     setTemplateCode,
     isTemplateMode,
     setTemplateMode,
     auditResults,
-    theme
+    theme,
+    lang: storeLang
   } = useAppStore();
+
+  const lang = propLang || storeLang;
+  const t = translations[lang];
 
   const [code, setCode] = useState<string>(analyzedCode || t.analyzerPlaceholder);
   const [language, setLanguage] = useState<string>('auto');
@@ -145,8 +140,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     setCollapsedPillars(prev => ({ ...prev, [name]: !prev[name] }));
   };
 
-  /* Sync local code with store when analyzedCode changes in store (e.g. from Audit) */
-  // Synchronize internal code state with the global store's analyzedCode
   useEffect(() => {
     if (analyzedCode !== null && analyzedCode !== undefined) {
       setCode(analyzedCode);
@@ -156,11 +149,10 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
   const forceRefresh = () => {
     if (analyzedCode) {
       setCode(analyzedCode);
-      addToast(lang === 'EL' ? 'Ανανέωση κώδικα επιτυχής' : 'Code refreshed successfully', 'info');
+      addToast(t.codeRefreshed, 'info');
     }
   };
 
-  /* Scroll to targetLine when editor mounts or targetLine changes */
   useEffect(() => {
     if (editorRef.current && targetLine) {
       setTimeout(() => {
@@ -168,7 +160,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         editorRef.current.setPosition({ lineNumber: targetLine, column: 1 });
         editorRef.current.focus();
         
-        /* Update mentor panel for this line */
         if (analysisResult) {
           const findingAtLine = analysisResult.pillars
             .flatMap(p => p.findings)
@@ -179,25 +170,21 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     }
   }, [targetLine, analysisResult]);
 
-  /* Monaco setup — custom Aegean themes */
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     monacoRef.current = monaco;
     editorRef.current = editor;
 
-    /* Register custom Aegean themes */
     monaco.editor.defineTheme('aegean-dark', AEGEAN_DARK_THEME);
     monaco.editor.defineTheme('aegean-light', AEGEAN_LIGHT_THEME);
     monaco.editor.setTheme(theme === 'dark' ? 'aegean-dark' : 'aegean-light');
   };
 
-  /* Sync editor theme when global theme changes */
   useEffect(() => {
     if (monacoRef.current) {
       monacoRef.current.editor.setTheme(theme === 'dark' ? 'aegean-dark' : 'aegean-light');
     }
   }, [theme]);
 
-  /* Τοποθέτηση markers όταν αλλάζουν τα αποτελέσματα */
   useEffect(() => {
     if (monacoRef.current && editorRef.current && analysisResult) {
       const markers = analysisResult.pillars.flatMap(p => 
@@ -212,7 +199,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       );
       monacoRef.current.editor.setModelMarkers(editorRef.current.getModel(), 'owner', markers);
 
-      /* Gutter decorations with severity-based colors */
       const decorations = analysisResult.pillars.flatMap(p => 
         p.findings.map((f: Finding) => {
           let severityClass = 'slop-gutter-icon';
@@ -234,7 +220,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       const oldDecorations = editorRef.current.getModel()._slopDecorations || [];
       editorRef.current.getModel()._slopDecorations = editorRef.current.deltaDecorations(oldDecorations, decorations);
 
-      /* Listen for cursor changes to update Mentor Panel */
       const disposable = editorRef.current.onDidChangeCursorPosition((e: any) => {
         const findingAtLine = analysisResult.pillars
           .flatMap(p => p.findings)
@@ -246,7 +231,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     }
   }, [analysisResult]);
 
-  /* ─── Active Finding Highlight ─── */
   useEffect(() => {
     if (editorRef.current && monacoRef.current) {
       const model = editorRef.current.getModel();
@@ -269,7 +253,6 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     }
   }, [selectedFinding]);
 
-  /* Εκτέλεση ανάλυσης */
   const handleAnalyze = useCallback(async () => {
     if (!code.trim() || isAnalyzing) return;
 
@@ -287,7 +270,8 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
         settings: {
           sensitivity: parseInt(sensitivity),
           experimental,
-          humanity_shield: humanityShield
+          humanity_shield: humanityShield,
+          ui_lang: lang
         }
       });
       const result = JSON.parse(rawResult);
@@ -298,19 +282,18 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
       
       setAnalysisResult(result);
       setAnalyzedCode(code);
-      addToast(lang === 'EL' ? 'Η ανάλυση ολοκληρώθηκε με επιτυχία' : 'Analysis completed successfully', 'success');
+      addToast(t.analysisSuccess, 'success');
       setView('dashboard');
     } catch (error) {
       console.error('Analysis failed:', error);
       const errorMsg = String(error);
       setLastError(errorMsg);
-      addToast(lang === 'EL' ? 'Η ανάλυση απέτυχε' : 'Analysis failed', 'error');
+      addToast(t.analysisFailed, 'error');
     } finally {
       setAnalyzing(false);
     }
   }, [code, language, isAnalyzing, setAnalyzing, setAnalysisResult, setAnalyzedCode, addToast, setView, isTemplateMode, templateCode, lang]);
 
-  /* Ctrl+Enter shortcut */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -322,14 +305,12 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
     return () => window.removeEventListener('keydown', handler);
   }, [handleAnalyze]);
 
-  /* Μέτρηση γραμμών */
   const lineCount = code.split('\n').length;
   const auditResultsArray = Array.isArray(auditResults) ? auditResults : [];
 
   return (
     <div className="flex flex-col h-[calc(100vh-32px)] overflow-hidden bg-bg rounded-3xl border border-border-subtle shadow-strong mx-3 md:mx-6 mb-4 mt-4 anim-scale-in">
       
-      {/* ═══ Toolbar ═══ */}
       <header className="h-[68px] border-b border-border-subtle flex items-center justify-between px-6 bg-surface/40 backdrop-blur-md shrink-0">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-accent-primary/[0.08] rounded-xl border border-accent-primary/[0.12]">
@@ -469,7 +450,7 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
             <div className="bg-slop/10 border-b border-slop/20 p-4 anim-slide-down">
               <div className="flex items-center space-x-2 text-slop mb-1">
                 <AlertCircle size={14} strokeWidth={1.75} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">Engine Error Detail</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{t.engineErrorDetail}</span>
               </div>
               <code className="text-[11px] text-slop/80 font-mono break-all line-clamp-2 hover:line-clamp-none cursor-pointer decoration-dotted underline">
                 {lastError}
@@ -512,12 +493,12 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                 className="flex items-center space-x-2 text-text-secondary hover:text-text-primary transition-colors text-[10px] uppercase font-black tracking-widest"
               >
                 <ArrowRight size={14} strokeWidth={1.75} className="rotate-180" />
-                <span>Πίσω στη Λίστα</span>
+                <span>{t.backToList}</span>
               </button>
 
               <div className="flex items-center space-x-3 text-slop">
                 <ShieldAlert size={20} strokeWidth={1.75} />
-                <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">Mentor's Note</h3>
+                <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">{t.mentorNote}</h3>
               </div>
               
               <div className="space-y-4">
@@ -529,7 +510,7 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                 <div className="p-4 bg-human/[0.05] border border-human/[0.1] rounded-2xl space-y-3">
                   <div className="flex items-center space-x-2 text-human">
                     <Sparkles size={14} strokeWidth={1.75} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Η ΑΝΘΡΩΠΙΝΗ ΠΙΝΕΛΙΑ</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{t.humanTouchLabel}</span>
                   </div>
                   <p className="text-xs text-text-primary font-medium leading-loose">
                     {selectedFinding.human_alternative}
@@ -543,23 +524,23 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 text-text-primary opacity-90">
                   <Search size={18} strokeWidth={1.75} />
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">ΕΥΡΗΜΑΤΑ ΑΝΑΛΥΣΗΣ</h3>
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-black italic">{t.findingsLabel}</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button 
                     onClick={() => {
-                      const allNames = analysisResult.pillars.map(p => p.name);
-                      const areAllCollapsed = allNames.every(name => collapsedPillars[name]);
+                      const allPillars = analysisResult.pillars.map(p => p.pillar);
+                      const areAllCollapsed = allPillars.every(name => collapsedPillars[name]);
                       const next = {} as Record<string, boolean>;
-                      allNames.forEach(n => next[n] = !areAllCollapsed);
+                      allPillars.forEach(n => next[n] = !areAllCollapsed);
                       setCollapsedPillars(next);
                     }}
                     className="text-[9px] uppercase font-black tracking-widest text-text-disabled hover:text-accent-primary transition-colors"
                   >
-                    {analysisResult.pillars.map(p => p.name).every(n => collapsedPillars[n]) ? 'Expand All' : 'Collapse All'}
+                    {analysisResult.pillars.map(p => p.pillar).every(n => collapsedPillars[n]) ? t.expandAll : t.collapseAll}
                   </button>
                   <span className="px-2 py-0.5 bg-surface-elevated rounded text-[10px] font-mono text-text-secondary border border-border-default">
-                    {analysisResult.pillars.reduce((acc, p) => acc + p.findings.length, 0)} ISSUES
+                    {analysisResult.pillars.reduce((acc, p) => acc + p.findings.length, 0)} {t.issuesCount}
                   </span>
                 </div>
               </div>
@@ -568,7 +549,7 @@ export const Analyzer: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
                 {analysisResult.pillars
                   .filter(p => p.findings.length > 0)
                     .map((p, pIdx) => {
-                      const intelligentlyGrouped = groupFindingsIntelligently(p.findings, lang);
+                      const intelligentlyGrouped = groupFindingsIntelligently(p.findings);
                       const isCollapsed = collapsedPillars[p.pillar];
 
                       return (

@@ -1,24 +1,23 @@
 import React from 'react';
-import { HelpCircle, Info, BookOpen, Heart, Zap, AlignLeft, BarChart3, MessageSquare, RotateCcw, LayoutTemplate, Scan } from 'lucide-react';
+import { Info, BookOpen, Heart, Zap, AlignLeft, BarChart3, MessageSquare, RotateCcw, LayoutTemplate } from 'lucide-react';
 import { Language, translations } from '../lib/i18n';
 
-export const Help: React.FC<{ lang?: Language }> = ({ lang = 'EL' }) => {
+export const Help: React.FC<{ lang: Language }> = ({ lang }) => {
   const t = translations[lang];
   
   /* Pillar info data — Synced with Engine */
   const helpPillars = [
     { icon: AlignLeft, ...t.helpPillars[0] },
-    { icon: Zap, ...t.helpPillars[1] },
-    { icon: BarChart3, ...t.helpPillars[2] },
+    { icon: BarChart3, ...t.helpPillars[1] },
+    { icon: Zap, ...t.helpPillars[2] },
     { icon: MessageSquare, ...t.helpPillars[3] },
     { icon: RotateCcw, ...t.helpPillars[4] },
-    { icon: LayoutTemplate, name: t.pillarNames['Template Integrity'], desc: lang === 'EL' ? 'Έλεγχος συμμόρφωσης με το αρχικό template.' : 'Compliance with initial template structure.' },
+    { icon: LayoutTemplate, ...t.helpPillars[5] },
   ];
 
   return (
     <div className="p-6 md:p-12 max-w-[1400px] mx-auto w-full space-y-12 pb-24 anim-fade-in">
       
-      {/* ═══ Header ═══ */}
       {/* ═══ Header ═══ */}
       <header className="flex items-center space-x-5 anim-scale-in">
         <div className="p-4 bg-accent-primary/[0.08] rounded-2xl border border-accent-primary/[0.12]">

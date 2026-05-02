@@ -6,8 +6,8 @@ from typing import List
 import re
 
 class SuspicionAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
         
         if language_id == "python":
@@ -44,15 +44,15 @@ class SuspicionAnalyzer(BaseAnalyzer):
         if total_chars > 200:
             ratio = comment_chars / max(1, code_chars)
             if ratio > 2.5: # 2.5x more comments than code is very "Slop-y"
+                from analyzer.i18n import translate
+                t_data = translate("suspicion.verbosity", ui_lang=self.ui_lang)
                 self.findings.append(Finding(
                     type="suspicion.boilerplate_density",
                     file=file_path,
-                    line=1,
+                    line=0,
                     severity=2.0,
                     confidence=0.8,
-                    message=f"Statistical Verbiage (Ratio: {ratio:.1f}x)",
-                    human_alternative="Αφαίρεσε τα αυτονόητα σχόλια. Αν ο κώδικας είναι `x = 5`, δεν χρειάζεται docstring 10 γραμμών που να εξηγεί την έννοια της ανάθεσης τιμής.",
-                    rationale="Τα AI μοντέλα 'πληρώνονται' (μεταφορικά) για να είναι ομιλητικά. Συχνά παράγουν τεράστιες επεξηγήσεις για πολύ απλό κώδικα, κάτι που ένας έμπειρος προγραμματιστής αποφεύγει για να μην 'θάψει' την ουσία."
+                    **t_data
                 ))
 
         # 2. Architecture Overkill (Phase 2.2)
@@ -62,15 +62,15 @@ class SuspicionAnalyzer(BaseAnalyzer):
             # Check if there's actually complex logic
             logical_ops = re.findall(r"(\+|\-|\*|\/|\%|==|!=|>|<|and|or|not|if|for|while)", source_text)
             if len(logical_ops) < 10:
+                from analyzer.i18n import translate
+                t_data = translate("suspicion.abstraction_slop", ui_lang=self.ui_lang)
                 self.findings.append(Finding(
                     type="suspicion.architecture_overkill",
                     file=file_path,
-                    line=1,
+                    line=0,
                     severity=2.5,
                     confidence=0.9,
-                    message="Architecture Overkill (Logic 8/Boilerplate 147)",
-                    human_alternative="Keep it Simple. Μην χτίζεις 'καθεδρικούς ναούς' (Managers, Factories) για να λύσεις ένα πρόβλημα που λύνεται με μια απλή συνάρτηση 5 γραμμών.",
-                    rationale="Είναι το κλασικό φαινόμενο του AI: προσπαθεί να εντυπωσιάσει εφαρμόζοντας enterprise patterns (όπως το Factory Pattern) ακόμα και σε ένα απλό script, κάνοντας τον κώδικα δυσκίνητο και 'ρομποτικό'."
+                    **t_data
                 ))
 
         # 3. AI Intro/Outro Filler
@@ -85,15 +85,15 @@ class SuspicionAnalyzer(BaseAnalyzer):
         ]
         for pat in intro_patterns:
             if re.search(pat, source_text.lower()):
+                from analyzer.i18n import translate
+                t_data = translate("suspicion.chat_boilerplate", ui_lang=self.ui_lang)
                 self.findings.append(Finding(
                     type="suspicion.ai_filler",
                     file=file_path,
-                    line=1,
+                    line=0,
                     severity=3.0,
                     confidence=1.0,
-                    message="AI Fingerprint Detected (Intro/Outro)",
-                    human_alternative="Διέγραψε αμέσως αυτές τις φράσεις. Προδίδουν ότι ο κώδικας είναι copy-paste από chat και δεν έχει ελεγχθεί από άνθρωπο.",
-                    rationale="Φράσεις όπως 'As an AI language model' ή 'Hope this helps' είναι η απόλυτη 'σφραγίδα' του AI. Η παρουσία τους στον κώδικα δείχνει έλλειψη προσοχής στη λεπτομέρεια."
+                    **t_data
                 ))
 
         return self.findings

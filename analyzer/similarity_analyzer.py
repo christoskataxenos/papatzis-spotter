@@ -6,8 +6,8 @@ from typing import List, Set, Dict, Tuple
 import re
 
 class SimilarityAnalyzer(BaseAnalyzer):
-    def __init__(self, language_id: str):
-        super().__init__(language_id)
+    def __init__(self, language_id: str, ui_lang: str = "EN"):
+        super().__init__(language_id, ui_lang=ui_lang)
         self.lang = tree_sitter_language_pack.get_language(language_id)
         
         # Keywords to filter from content-aware tokens
@@ -162,30 +162,30 @@ class SimilarityAnalyzer(BaseAnalyzer):
             
             # Create a finding for each cluster
             rep_block = blocks[cluster[0]]
+            from analyzer.i18n import translate
+            t_data = translate("similarity.robotic_uniformity", ui_lang=self.ui_lang, count=len(cluster))
             self.findings.append(Finding(
                 type="similarity.robotic_uniformity",
                 file=file_path,
                 line=rep_block["node"].start_point[0] + 1,
                 severity=0.8,
                 confidence=0.9,
-                message=f"Robotic Uniformity: Εντοπίστηκε cluster {len(cluster)} συναρτήσεων με υπερβολική δομική ομοιότητα.",
-                human_alternative="Ενισχύστε την ποικιλομορφία στον κώδικα. Αποφύγετε τα επαναλαμβανόμενα templates που παράγει το AI.",
-                rationale=f"Η Jaccard ομοιότητα μεταξύ αυτών των blocks είναι > 80%, κάτι που σπάνια συμβαίνει σε ανθρώπινο κώδικα χωρίς copy-paste."
+                **t_data
             ))
 
         # Global Entropy Check (Option 2)
         if all_jaccards:
             mean_jaccard = sum(all_jaccards) / len(all_jaccards)
             if mean_jaccard > 0.7:
+                from analyzer.i18n import translate
+                t_data = translate("similarity.high_global_entropy", ui_lang=self.ui_lang, mean_jaccard=f"{mean_jaccard:.2f}")
                 self.findings.append(Finding(
                     type="similarity.high_global_entropy",
                     file=file_path,
                     line=1,
                     severity=0.6,
                     confidence=0.7,
-                    message=f"High Global Similarity ({mean_jaccard:.2f}): Το αρχείο παρουσιάζει ασυνήθιστη ομοιομορφία.",
-                    human_alternative="Προσθέστε 'ανθρώπινο θόρυβο' και διαφοροποιήστε τις δομές των συναρτήσεων.",
-                    rationale="Η μέση ομοιότητα μεταξύ όλων των blocks είναι πολύ υψηλή, υποδεικνύοντας ενιαίο generator (LLM)."
+                    **t_data
                 ))
 
         return self.findings
