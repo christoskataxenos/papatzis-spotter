@@ -1,14 +1,14 @@
 # Papatzis Spotter
 ## The Offline AI-Slop Detection Engine
 
-[![](https://img.shields.io/badge/version-3.5.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases)
+[![](https://img.shields.io/badge/version-3.5.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
 [![](https://img.shields.io/badge/license-MIT-333333?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/badge/python-3.10%2B-2F5C8F?style=for-the-badge)](https://python.org)
 [![](https://img.shields.io/badge/platform-windows%20%7C%20linux-333333?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter)
 
 ---
 
-### [ Ελληνικά ](#ελληνικά) | [ English ](#english) | [ Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release) | [ V3 Changelog ](CHANGELOG_V3.md)
+### [ Ελληνικά ](#ελληνικά) | [ English ](#english) | [ Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ V3 Changelog ](CHANGELOG_V3.md)
 
 ---
 
@@ -103,7 +103,7 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 ```
 
 ### Manual Download
-Latest stable binaries are available in the [Releases](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/stable_release) section.
+Latest stable binaries are available in the [Releases](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) section.
 
 ---
 
