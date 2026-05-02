@@ -163,6 +163,16 @@ class PapatzisLauncher(QMainWindow):
         """)
         sidebar_layout.addWidget(btn_build_release)
 
+        sidebar_layout.addSpacing(30)
+        sidebar_layout.addWidget(QLabel("DIAGNOSTICS"))
+        
+        btn_run_tests = self.create_side_btn("🧪 Run Unit Tests", self.run_diagnostic_tests)
+        sidebar_layout.addWidget(btn_run_tests)
+
+        btn_batch_test = self.create_side_btn("📂 Batch Validation", self.run_batch_validation)
+        sidebar_layout.addWidget(btn_batch_test)
+
+
         sidebar_layout.addStretch()
         
         # App Version
@@ -228,8 +238,14 @@ class PapatzisLauncher(QMainWindow):
         self.build_out.setReadOnly(True)
         self.build_out.setObjectName("Terminal")
         self.tabs.addTab(self.build_out, "🛠️ BUILD LOGS")
+
+        self.test_out = QTextEdit()
+        self.test_out.setReadOnly(True)
+        self.test_out.setObjectName("Terminal")
+        self.tabs.addTab(self.test_out, "🔬 LABORATORY")
         
         content_layout.addWidget(self.tabs)
+
         
         main_layout.addWidget(content_area)
 
@@ -567,6 +583,7 @@ fi
     def append_log(self, sid, msg):
         if sid == "npm": box = self.npm_out
         elif sid == "py": box = self.py_out
+        elif sid == "test": box = self.test_out
         else: box = self.build_out
         
         # --- HTML HIGHLIGHTING ---
@@ -726,7 +743,20 @@ fi
             self.append_log("build", f"Φάκελος: <b>{portable_dir}</b>\n")
             self.append_log("build", "Τρέξτε το EXE σε οποιονδήποτε υπολογιστή!\n")
             self.lbl_main_status.setText("Release Ready!")
+            
+            # Άνοιγμα φακέλων MSI και EXE
+            bundle_dir = os.path.join(project_root, "src-tauri", "target", "release", "bundle")
+            msi_dir = os.path.join(bundle_dir, "msi")
+            nsis_dir = os.path.join(bundle_dir, "nsis") # Tauri v2 default for exe installers
+            
             os.startfile(portable_dir)
+            if os.path.exists(msi_dir):
+                os.startfile(msi_dir)
+                self.append_log("build", f"[INFO] Άνοιγμα φακέλου MSI: {msi_dir}\n")
+            if os.path.exists(nsis_dir):
+                os.startfile(nsis_dir)
+                self.append_log("build", f"[INFO] Άνοιγμα φακέλου EXE Installer: {nsis_dir}\n")
+                
         except Exception as e:
             self.append_log("build", f"[ERROR] Σφάλμα packaging: {e}\n")
 
@@ -768,7 +798,7 @@ fi
             self.append_log("build", f"\n<b>❌ Σφάλμα: Η διαδικασία ολοκληρώθηκε αλλά το {exe_name} δεν βρέθηκε!</b>\n")
             self.append_log("build", f"Το PyInstaller ίσως απέτυχε χωρίς να επιστρέψει σφάλμα. Ελέγξτε τα build logs.\n")
             self.lbl_main_status.setText(f"{name} Failed!")
-
+        
         if name == "Engine" and self.is_auto_building_analyzer:
             self.is_auto_building_analyzer = False
             if os.path.exists(exe_path):
@@ -776,6 +806,63 @@ fi
                 self.build_release()
             else:
                 self.append_log("build", "\n[AUTO] Το release build σταμάτησε λόγω αποτυχίας του Engine.\n")
+
+    # --- TESTING ACTIONS ---
+    def run_diagnostic_tests(self):
+        """Runs pytest on the analyzer/tests directory."""
+        self.tabs.setCurrentIndex(3) # Laboratory Tab
+        self.test_out.clear()
+        self.append_log("test", "<b>[DIAGNOSTICS] Starting Unit Test Suite...</b>\n")
+        
+        if not os.path.exists(python_exec):
+            self.append_log("test", "[ERROR] Python Venv not found. Please Rebuild Env first.\n")
+            return
+
+        p = QProcess(self)
+        p.setWorkingDirectory(project_root)
+        p.setProcessChannelMode(QProcess.MergedChannels)
+        p.readyRead.connect(lambda: self.stream_logs(p, "test"))
+        
+        # Run pytest
+        self.append_log("test", f"[SYSTEM] Executing: pytest\n")
+        p.start(python_exec, ["-m", "pytest"])
+        self.running_procs["unit_tests"] = p
+        p.finished.connect(lambda code: self.append_log("test", f"\n<b>[DONE] Tests finished with exit code {code}</b>\n"))
+
+    def run_batch_validation(self):
+        """Runs the test_runner.py against a user-selected directory."""
+        from PyQt5.QtWidgets import QFileDialog
+        
+        target_dir = QFileDialog.getExistingDirectory(self, "Select Directory for Batch Validation", project_root)
+        if not target_dir:
+            return
+
+        self.tabs.setCurrentIndex(3) # Laboratory Tab
+        self.test_out.clear()
+        self.append_log("test", f"<b>[LAB] Starting Batch Validation on: {target_dir}</b>\n")
+        
+        if not os.path.exists(python_exec):
+            self.append_log("test", "[ERROR] Python Venv not found.\n")
+            return
+
+        p = QProcess(self)
+        p.setWorkingDirectory(project_root)
+        p.setProcessChannelMode(QProcess.MergedChannels)
+        p.readyRead.connect(lambda: self.stream_logs(p, "test"))
+        
+        runner_path = os.path.join(analyzer_dir, "test_runner.py")
+        self.append_log("test", "[SYSTEM] Running analyzer/test_runner.py...\n")
+        p.start(python_exec, [runner_path, target_dir])
+        self.running_procs["batch_test"] = p
+        
+        def on_finished(exit_code):
+            if exit_code == 0:
+                self.append_log("test", "\n<b>✅ Batch Validation Completed!</b>\n")
+            else:
+                self.append_log("test", f"\n<b>❌ Batch Validation Failed (Code: {exit_code})</b>\n")
+
+        p.finished.connect(on_finished)
+
     def closeEvent(self, event):
         if self.tray.isVisible():
             self.hide()
