@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// TODO: wtf is this
 import { useAppStore } from '../store/useAppStore';
 import { translations, Language } from '../lib/i18n';
 import { Shield, FolderDown, Globe, GitBranch } from 'lucide-react';
@@ -82,13 +83,17 @@ fi
 for FILE in $STAGED_FILES; do
     if [ ! -f "$FILE" ]; then continue; fi
 
-    # We assume slop_engine.py can be called via python and returns "[FAIL]" if it detects slop
-    # For a real implementation, you might want to parse the JSON output of the engine.
+    # We assume slop_engine.py returns JSON. We will parse it with python.
     OUTPUT=$(python "$SPOTTER_PATH" "$FILE" 2>/dev/null)
     
-    if echo "$OUTPUT" | grep -q "FAIL"; then
-        echo "❌ [Git Bouncer] Slop detected in $FILE!"
-        echo "$OUTPUT"
+    # Parse final_score from JSON output
+    SCORE=$(echo "$OUTPUT" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('final_score', 0))" 2>/dev/null)
+    
+    # Check if SCORE > THRESHOLD using python or awk. Here we use python for float comparison.
+    IS_SLOP=$(python -c "print('1' if float('$SCORE') > $THRESHOLD else '0')" 2>/dev/null)
+    
+    if [ "$IS_SLOP" == "1" ]; then
+        echo "❌ [Git Bouncer] Slop detected in $FILE! (Score: $SCORE > $THRESHOLD)"
         echo "Commit blocked. Use humanity shield or rewrite the code."
         exit 1
     fi
