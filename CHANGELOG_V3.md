@@ -28,25 +28,35 @@
 *   **[EN] Embedded Engine:** The analysis engine is now an embedded sidecar for 100% offline operation with zero external dependencies.
 *   **[EN] Multi-language Support:** Enhanced detection for Python, C, and Generic code.
 
-## [3.5.0] - 2026-05-01 (Responsive Polish & Forensic Recalibration)
+## [3.5.0] - 2026-05-02 (Diagnostic Hub & Aesthetic Evolution)
 
 ### 🚀 Νέα Χαρακτηριστικά (New Features)
+*   **[EL] Orchestrator Diagnostic Center:** Νέα ενότητα Laboratory για την εκτέλεση Unit Tests και Batch Validation φακέλων χωρίς κώδικα.
+*   **[EL] Aegean Day Theme:** Εισαγωγή υψηλής αντίθεσης Light Theme για άνετη εργασία σε φωτεινά περιβάλλοντα.
 *   **[EL] Bottom Navigation Bar:** Πλήρης επανασχεδιασμός του Navigation για μέγιστο χώρο εργασίας στον editor.
-*   **[EL] Intelligent Grouping:** Τα ευρήματα ομαδοποιούνται πλέον έξυπνα ανά κατηγορία και σοβαρότητα (Red/Blue/Green).
 *   **[EL] Forensic Color Guide:** Νέα ενότητα στον Οδηγό (Help) που εξηγεί τη σημασία κάθε χρωματικού κώδικα.
+*   **[EN] Orchestrator Diagnostic Center:** New Laboratory section for running Unit Tests and No-Code Batch Validation directly from the launcher.
+*   **[EN] Aegean Day Theme:** Introduction of a high-contrast Light Theme for comfortable work in bright environments.
 *   **[EN] Bottom Navigation Bar:** Complete navigation redesign for maximum editor workspace and modern app experience.
-*   **[EN] Intelligent Grouping:** Findings are now grouped intelligently by category and severity (Red/Blue/Green).
 *   **[EN] Forensic Color Guide:** New Help section explaining the diagnostic significance of each color code.
 
 ### 🧠 Βελτιώσεις Μηχανής (Engine Enhancements)
 *   **[EL] Exponential Weighting:** Νέος αλγόριθμος βαθμολόγησης (severity^1.4) για ακριβέστερη ανάδειξη κρίσιμων AI patterns.
-*   **[EL] Naming Refinement:** Βελτιωμένη ανίχνευση για την ελληνική γλώσσα (αποφυγή false positives σε UPPERCASE_CONSTANTS).
+*   **[EL] Automated Recalibration:** Διόρθωση PYTHONPATH και αυτοματοποιημένος έλεγχος ακεραιότητας της μηχανής.
 *   **[EN] Exponential Weighting:** New scoring algorithm (severity^1.4) for more accurate highlighting of critical AI patterns.
-*   **[EN] Naming Refinement:** Improved detection for Greek language (avoids false positives in uppercase constants).
+*   **[EN] Automated Recalibration:** Fixed PYTHONPATH issues and implemented automated engine integrity checks.
+
+### ⚙️ Build & Automation
+*   **[EL] Auto-Delivery:** Ο Orchestrator ανοίγει αυτόματα τους φακέλους των Portable, MSI και EXE installers μετά το build.
+*   **[EL] Version Sync:** Πλήρης συγχρονισμός έκδοσης (3.5.0) σε όλα τα υποσυστήματα (Package, Config, UI).
+*   **[EN] Auto-Delivery:** The Orchestrator automatically opens Portable, MSI, and EXE installer folders upon successful build.
+*   **[EN] Version Sync:** Full version synchronization (3.5.0) across all sub-systems (Package, Config, UI).
 
 ### 🖥️ UI/UX & Σταθερότητα (Stability)
 *   **[EL] Layout Hardening:** Ο editor υποστηρίζει πλέον word wrap και τα panels παραμένουν ορατά σε κάθε ανάλυση οθόνης.
+*   **[EL] Intelligent Grouping:** Τα ευρήματα ομαδοποιούνται πλέον έξυπνα ανά κατηγορία και σοβαρότητα (Red/Blue/Green).
 *   **[EN] Layout Hardening:** Enabled word wrap and ensured UI panels remain stable and visible across all viewport sizes.
+*   **[EN] Intelligent Grouping:** Findings are now grouped intelligently by category and severity (Red/Blue/Green).
 
 ---
 *Papatzis Spotter V3 - Evolution of Objectivity.*

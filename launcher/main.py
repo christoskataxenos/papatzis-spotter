@@ -176,7 +176,7 @@ class PapatzisLauncher(QMainWindow):
         sidebar_layout.addStretch()
         
         # App Version
-        ver_lbl = QLabel("v1.5.0-stable")
+        ver_lbl = QLabel("v3.5.0-stable")
         ver_lbl.setStyleSheet(f"color: {THEME['text_dim']}; font-size: 10px;")
         ver_lbl.setAlignment(Qt.AlignCenter)
         sidebar_layout.addWidget(ver_lbl)

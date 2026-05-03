@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AnalysisResult } from '../types/analysis';
 
-export type View = 'wizard' | 'dashboard' | 'analyzer' | 'audit' | 'config' | 'help';
+export type View = 'wizard' | 'dashboard' | 'analyzer' | 'audit' | 'config' | 'help' | 'evasion';
 
 interface Toast {
     message: string;

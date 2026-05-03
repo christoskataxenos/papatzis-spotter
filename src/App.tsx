@@ -5,6 +5,7 @@ import { Analyzer } from './components/Analyzer';
 import { Audit } from './components/Audit';
 import { Config } from './components/Config';
 import { Help } from './components/Help';
+import { SkillInstaller } from './components/SkillInstaller';
 import { ToastContainer } from './components/ToastContainer';
 import { Modal } from './components/Modal';
 import { Language, translations } from './lib/i18n';
@@ -14,7 +15,8 @@ import {
   Settings as SettingsIcon,
   Search,
   ArrowRight,
-  BookOpen
+  BookOpen,
+  Wand2
 } from 'lucide-react';
 import { PapatzisLogo, LogoWithText } from './components/Logo';
 
@@ -173,6 +175,7 @@ function App() {
       case 'dashboard': return <Dashboard lang={lang} />;
       case 'analyzer': return <Analyzer lang={lang} />;
       case 'audit': return <Audit lang={lang} />;
+      case 'evasion': return <SkillInstaller lang={lang} />;
       case 'help': return <Help lang={lang} />;
       case 'wizard': return <WizardView lang={lang} />;
       default: return <Dashboard lang={lang} />;
@@ -236,11 +239,18 @@ function App() {
             shortcut="Ctrl+3"
           />
           <SidebarItem 
+            icon={Wand2} 
+            label="Evasion" 
+            active={currentView === 'evasion'} 
+            onClick={() => setView('evasion')}
+            shortcut="Ctrl+4"
+          />
+          <SidebarItem 
             icon={BookOpen} 
             label={t.help} 
             active={currentView === 'help'} 
             onClick={() => setView('help')}
-            shortcut="Ctrl+4"
+            shortcut="Ctrl+5"
           />
         </div>
 
@@ -252,7 +262,7 @@ function App() {
             label={t.settings} 
             active={isConfigOpen} 
             onClick={() => setIsConfigOpen(true)}
-            shortcut="Ctrl+5"
+            shortcut="Ctrl+6"
           />
         </div>
       </nav>

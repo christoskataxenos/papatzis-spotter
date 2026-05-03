@@ -105,6 +105,11 @@ Verified through local LLM testing (Proxmox stack), the verdict was clear: **Hig
 ### Manual Download
 Latest stable binaries are available in the [Releases](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) section.
 
+### Evasion Skill (Papatzoskill) & Git Bouncer
+You can auto-install the Papatzoskill and Git Bouncer through the new Orchestrator UI. If you prefer manual, local (per-project) installation:
+1. **Papatzoskill (Cursor/Windsurf/Claude)**: Copy the contents of `my-skills/papatzoskill/SKILL.md` into your project's `.cursorrules`, `.windsurf/rules`, or `.claude/skills/` directory.
+2. **Git Bouncer**: Copy the `pre-commit` script from `scripts/git-bouncer.sh` into your target project's `.git/hooks/pre-commit` and ensure it's executable.
+
 ---
 
 ## Diagnostic Output Examples
