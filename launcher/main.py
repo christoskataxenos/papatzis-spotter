@@ -390,7 +390,7 @@ class PapatzisLauncher(QMainWindow):
         self.append_log("build", "<b>[ECOSYSTEM] Initiating CLI system integration...</b>\n")
         
         # Determine paths
-        dist_cli = os.path.join(project_root, "dist", "PapatzisEngine.exe")
+        dist_cli = os.path.join(project_root, "analyzer-dist", "PapatzisEngine.exe")
         target_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "PapatzisSpotter", "bin")
         target_exe = os.path.join(target_dir, "papatzis.exe")
 
@@ -701,8 +701,8 @@ fi
         except Exception as e:
             self.append_log("build", f"[WARNING] Failed to create build_info.json: {e}\n")
 
-        # Χρησιμοποιούμε το spec file από το project root
-        spec_file = os.path.join(project_root, "PapatzisEngine.spec")
+        # Χρησιμοποιούμε το spec file από τον φάκελο analyzer/
+        spec_file = os.path.join(analyzer_dir, "PapatzisEngine.spec")
 
         p = QProcess(self)
         p.setWorkingDirectory(project_root)
@@ -785,7 +785,7 @@ fi
             self.append_log("build", "[ERROR] Δεν βρέθηκε το EXE στο src-tauri/target/release/.\n")
             return
 
-        portable_dir = os.path.join(project_root, "Papatzis-Portable")
+        portable_dir = os.path.join(project_root, "releases", "Papatzis-Portable")
         os.makedirs(portable_dir, exist_ok=True)
 
         try:
