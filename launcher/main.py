@@ -11,7 +11,8 @@ import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QTabWidget, QTextEdit, QLabel, QSystemTrayIcon, 
-    QMenu, QAction, QFrame, QProgressBar, QSpacerItem, QSizePolicy
+    QMenu, QAction, QFrame, QProgressBar, QSpacerItem, QSizePolicy,
+    QMessageBox
 )
 from PyQt5.QtCore import Qt, QProcess, QTimer, pyqtSignal, QObject
 from PyQt5.QtGui import QFont, QIcon, QTextCursor, QColor
@@ -165,6 +166,22 @@ class PapatzisLauncher(QMainWindow):
             QPushButton:hover {{ background: #6d28d9; }}
         """)
         sidebar_layout.addWidget(btn_build_release)
+
+        btn_build_linux = self.create_side_btn("🐧 Build Linux (.deb/.rpm)", self.build_linux_release)
+        btn_build_linux.setStyleSheet(f"""
+            QPushButton {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #334155, stop:1 #0f172a);
+                color: #ffffff;
+                text-align: left;
+                padding: 12px;
+                border-radius: 8px;
+                font-weight: 700;
+                border: none;
+            }}
+            QPushButton:hover {{ background: #1e293b; }}
+        """)
+        sidebar_layout.addWidget(btn_build_linux)
 
         sidebar_layout.addSpacing(30)
         sidebar_layout.addWidget(QLabel("DIAGNOSTICS"))
@@ -811,6 +828,184 @@ fi
                 
         except Exception as e:
             self.append_log("build", f"[ERROR] Σφάλμα packaging: {e}\n")
+
+    # --- LINUX BUILD (DOCKER/WSL) ---
+    def check_docker_running(self):
+        try:
+            # Στα Windows χρειαζόμαστε shell=True για να βρούμε το docker.exe σωστά
+            # και το 'docker info' είναι πιο αξιόπιστο για τον έλεγχο του daemon
+            res = subprocess.run("docker info", shell=True, capture_output=True, text=True, timeout=10)
+            return res.returncode == 0
+        except Exception as e:
+            logging.debug(f"Docker check failed: {e}")
+            return False
+
+    def check_wsl_available(self):
+        try:
+            res = subprocess.run("wsl --list --quiet", shell=True, capture_output=True, text=True, timeout=5)
+            return res.returncode == 0
+        except Exception as e:
+            logging.debug(f"WSL check failed: {e}")
+            return False
+
+    def build_linux_release(self):
+        """Φτιάχνει DEB/RPM μέσω Docker/WSL."""
+        self.tabs.setCurrentIndex(2)
+        self.append_log("build", "<b>[LINUX] Έναρξη προετοιμασίας για Linux build (.deb, .rpm)...</b>\n")
+        
+        self.progress.setVisible(True)
+        self.progress.setValue(10)
+        self.lbl_main_status.setText("Checking Linux Env...")
+
+        # 1. Έλεγχος Docker
+        self.append_log("build", "[SYSTEM] Έλεγχος Docker Daemon...\n")
+        if not self.check_docker_running():
+            self.progress.setVisible(False)
+            self.lbl_main_status.setText("Docker Missing")
+            msg = "[ERROR] Το Docker δεν τρέχει!\n"
+            if self.check_wsl_available():
+                msg += "[INFO] Ανιχνεύτηκε WSL2. Παρακαλώ εκκινήστε το Docker Desktop (με WSL2 backend) ή το docker service στο WSL2.\n"
+            else:
+                msg += "[INFO] Παρακαλώ εγκαταστήστε το Docker Desktop για να συνεχίσετε.\n"
+            
+            self.append_log("build", msg)
+            QMessageBox.critical(self, "Docker Required", "Για το build σε Linux απαιτείται το Docker. Παρακαλώ εκκινήστε το και δοκιμάστε ξανά.")
+            return
+
+        # 2. Build Linux Sidecar (PapatzisEngine)
+        self.progress.setValue(20)
+        self.lbl_main_status.setText("Building Linux Engine...")
+        self.append_log("build", "[LINUX] Building PapatzisEngine for Linux (Docker)... (Αυτό μπορεί να πάρει χρόνο την πρώτη φορά)\n")
+        
+        # Δημιουργία build_info.json αν δεν υπάρχει
+        try:
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(os.path.join(analyzer_dir, "build_info.json"), "w") as f:
+                json.dump({"timestamp": now_str}, f)
+        except:
+            pass
+
+        linux_sidecar_name = "slop-engine-x86_64-unknown-linux-gnu"
+        
+        # Εντολή για το sidecar (Python PyInstaller)
+        engine_cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{project_root}:/app",
+            "-w", "/app",
+            "python:3.11-slim",
+            "bash", "-c", 
+            "apt-get update && apt-get install -y binutils && pip install -r analyzer/requirements.txt pyinstaller && pyinstaller analyzer/PapatzisEngine.spec --noconfirm --clean --distpath analyzer-dist-linux"
+        ]
+        
+        p_engine = QProcess(self)
+        p_engine.setProcessChannelMode(QProcess.MergedChannels)
+        p_engine.readyRead.connect(lambda: self.stream_logs(p_engine, "build"))
+        
+        def on_engine_linux_done(exit_code):
+            if exit_code != 0:
+                self.progress.setVisible(False)
+                self.lbl_main_status.setText("Engine Build Failed")
+                self.append_log("build", "[ERROR] Το build του Linux Engine απέτυχε.\n")
+                return
+            
+            self.append_log("build", "[OK] Linux Engine built successfully.\n")
+            self.progress.setValue(40)
+            self.lbl_main_status.setText("Deploying Sidecar...")
+            
+            # Αντιγραφή στο src-tauri/binaries
+            src_sidecar = os.path.join(project_root, "analyzer-dist-linux", "PapatzisEngine")
+            dst_sidecar = os.path.join(project_root, "src-tauri", "binaries", linux_sidecar_name)
+            
+            try:
+                os.makedirs(os.path.dirname(dst_sidecar), exist_ok=True)
+                shutil.copy2(src_sidecar, dst_sidecar)
+                self.append_log("build", f"[OK] Sidecar copied to {dst_sidecar}\n")
+            except Exception as e:
+                self.progress.setVisible(False)
+                self.lbl_main_status.setText("Copy Failed")
+                self.append_log("build", f"[ERROR] Αδυναμία αντιγραφής sidecar: {e}\n")
+                return
+
+            # 3. Build Tauri Linux
+            self.progress.setValue(50)
+            self.lbl_main_status.setText("Building Linux App (Tauri)...")
+            self.append_log("build", "[LINUX] Building Tauri App (.deb, .rpm) via Docker... (Εγκατάσταση εξαρτήσεων & Compilation)\n")
+            
+            tauri_cmd = [
+                "docker", "run", "--rm",
+                "-v", f"{project_root}:/app",
+                "-w", "/app",
+                "node:20-bookworm",
+                "bash", "-c",
+                "apt-get update && apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libnm-dev libpango1.0-dev libappindicator3-dev fakeroot rpm curl build-essential && " +
+                "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && " +
+                "source $HOME/.cargo/env && " +
+                "npm install && npm run tauri build"
+            ]
+            
+            p_tauri = QProcess(self)
+            p_tauri.setProcessChannelMode(QProcess.MergedChannels)
+            p_tauri.readyRead.connect(lambda: self.stream_logs(p_tauri, "build"))
+            p_tauri.finished.connect(self._on_linux_tauri_finished)
+            self.append_log("build", "[SYSTEM] Executing Linux Tauri Build (Docker)...\n")
+            p_tauri.start(tauri_cmd[0], tauri_cmd[1:])
+            self.running_procs["linux_tauri"] = p_tauri
+
+        p_engine.finished.connect(on_engine_linux_done)
+        self.append_log("build", f"[SYSTEM] Executing: {' '.join(engine_cmd)}\n")
+        p_engine.start(engine_cmd[0], engine_cmd[1:])
+        self.running_procs["linux_engine"] = p_engine
+
+    def _on_linux_tauri_finished(self, exit_code: int):
+        if exit_code != 0:
+            self.progress.setVisible(False)
+            self.lbl_main_status.setText("Linux Build Failed")
+            self.append_log("build", "\n[ERROR] Το Linux build απέτυχε. Ελέγξτε τα logs.\n")
+            return
+
+        self.progress.setValue(90)
+        self.lbl_main_status.setText("Packaging Linux Releases...")
+        self.append_log("build", "\n[OK] Linux build ολοκληρώθηκε!\n")
+
+        # Βήμα 4: Οργάνωση Linux releases
+        linux_releases_dir = os.path.join(project_root, "releases", "Papatzis-Linux")
+        os.makedirs(linux_releases_dir, exist_ok=True)
+        
+        bundle_dir = os.path.join(project_root, "src-tauri", "target", "release", "bundle")
+        deb_dir = os.path.join(bundle_dir, "deb")
+        rpm_dir = os.path.join(bundle_dir, "rpm")
+        
+        found = False
+        try:
+            if os.path.exists(deb_dir):
+                for f in os.listdir(deb_dir):
+                    if f.endswith(".deb"):
+                        shutil.copy2(os.path.join(deb_dir, f), os.path.join(linux_releases_dir, f))
+                        found = True
+            if os.path.exists(rpm_dir):
+                for f in os.listdir(rpm_dir):
+                    if f.endswith(".rpm"):
+                        shutil.copy2(os.path.join(rpm_dir, f), os.path.join(linux_releases_dir, f))
+                        found = True
+            
+            if found:
+                self.progress.setValue(100)
+                self.lbl_main_status.setText("Linux Ready!")
+                self.append_log("build", f"\n<b>✅ Linux Packages (.deb, .rpm) έτοιμα!</b>\n")
+                self.append_log("build", f"Φάκελος: <b>{linux_releases_dir}</b>\n")
+                os.startfile(linux_releases_dir)
+                
+                # Απόκρυψη progress bar μετά από λίγο
+                QTimer.singleShot(3000, lambda: self.progress.setVisible(False))
+            else:
+                self.progress.setVisible(False)
+                self.lbl_main_status.setText("Packages Not Found")
+                self.append_log("build", "[WARN] Build ολοκληρώθηκε αλλά δεν βρέθηκαν .deb ή .rpm αρχεία.\n")
+                
+        except Exception as e:
+            self.progress.setVisible(False)
+            self.lbl_main_status.setText("Packaging Error")
+            self.append_log("build", f"[ERROR] Σφάλμα οργάνωσης Linux releases: {e}\n")
 
     def on_build_finished(self, name, exit_code=0):
         if exit_code != 0:
