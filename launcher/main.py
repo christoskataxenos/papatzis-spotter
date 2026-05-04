@@ -894,7 +894,7 @@ fi
             "-w", "/app",
             "python:3.11-slim",
             "bash", "-c", 
-            "apt-get update && apt-get install -y binutils && pip install -r analyzer/requirements.txt pyinstaller && pyinstaller analyzer/PapatzisEngine.spec --noconfirm --clean --distpath analyzer-dist-linux"
+            "apt-get update && apt-get install -y binutils && pip install -r analyzer/requirements.txt pyinstaller && cd analyzer && pyinstaller PapatzisEngine.spec --noconfirm --clean --distpath ../analyzer-dist-linux"
         ]
         
         p_engine = QProcess(self)
