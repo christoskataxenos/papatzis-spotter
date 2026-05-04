@@ -27,6 +27,8 @@ All notable changes to the **Papatzis Spotter** project will be documented in th
 
 ## [3.0.0] - 2026-04-25
 ### 🧬 The Engine Rebirth | Η Αναγέννηση της Μηχανής V3
+- **[EN] Tauri Migration:** Transition from PyQt6 to a modern desktop application framework (Tauri) for superior UI/UX flexibility and visualization.
+- **[EL] Μετάβαση σε Tauri:** Μεταφορά από PyQt6 σε Tauri για μεγαλύτερη ευελιξία κινήσεων και προηγμένα γραφικά.
 - **[EN] Jaccard Similarity:** Pairwise block comparison to detect "Robotic Uniformity."
 - **[EL] Jaccard Similarity:** Συγκριτική ανάλυση blocks για τον εντοπισμό "Ρομποτικής Ομοιομορφίας".
 - **[EN] Entropy Analysis:** Shannon Entropy measurements to identify predictable AI output.
@@ -40,8 +42,8 @@ All notable changes to the **Papatzis Spotter** project will be documented in th
 - **[EL] Radar Visualization:** Εισαγωγή radar charts για οπτική διάγνωση του slop.
 - **[EN] Batch Processing:** Capability to scan entire directories and generate aggregated reports.
 - **[EL] Μαζική Σάρωση:** Δυνατότητα ελέγχου ολόκληρων φακέλων και έκδοσης συγκεντρωτικών reports.
-- **[EN] Tauri Migration:** Transition from a simple script to a modern desktop application framework.
-- **[EL] Μετάβαση σε Tauri:** Μετατροπή του script σε ολοκληρωμένη desktop εφαρμογή.
+- **[EN] PyQt6 GUI:** First graphical interface version, moving away from the terminal.
+- **[EL] PyQt6 GUI:** Η πρώτη έκδοση με γραφικό περιβάλλον (PyQt6), αφήνοντας πίσω το terminal.
 
 ## [1.0.0] - 2026-03-20
 ### 🧱 The CLI Foundation | Θεμελίωση CLI
