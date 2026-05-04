@@ -26,13 +26,36 @@ All notable changes to the **Papatzis Spotter** project will be documented in th
 - **[EL] Forensic Scoring:** Νέος αλγόριθμος βαθμολόγησης (severity^1.4) για ακριβέστερο εντοπισμό μοτίβων AI.
 
 ## [3.0.0] - 2026-04-25
-### 🧬 The V3 Engine Rebirth | Η Αναγέννηση της Μηχανής V3
+### 🧬 The Engine Rebirth | Η Αναγέννηση της Μηχανής V3
 - **[EN] Jaccard Similarity:** Pairwise block comparison to detect "Robotic Uniformity."
 - **[EL] Jaccard Similarity:** Συγκριτική ανάλυση blocks για τον εντοπισμό "Ρομποτικής Ομοιομορφίας".
 - **[EN] Entropy Analysis:** Shannon Entropy measurements to identify predictable AI output.
 - **[EL] Entropy Analysis:** Μέτρηση εντροπίας Shannon για τον εντοπισμό προβλέψιμου κώδικα AI.
 - **[EN] Embedded Engine:** 100% offline embedded sidecar architecture.
 - **[EL] Embedded Engine:** Πλήρως offline αρχιτεκτονική (embedded sidecar).
+
+## [2.0.0] - 2026-04-10
+### 🖥️ The GUI Era | Η Εποχή του UI & Batch Audit
+- **[EN] Radar Visualization:** Introduction of radar charts for visual slop diagnostics.
+- **[EL] Radar Visualization:** Εισαγωγή radar charts για οπτική διάγνωση του slop.
+- **[EN] Batch Processing:** Capability to scan entire directories and generate aggregated reports.
+- **[EL] Μαζική Σάρωση:** Δυνατότητα ελέγχου ολόκληρων φακέλων και έκδοσης συγκεντρωτικών reports.
+- **[EN] Tauri Migration:** Transition from a simple script to a modern desktop application framework.
+- **[EL] Μετάβαση σε Tauri:** Μετατροπή του script σε ολοκληρωμένη desktop εφαρμογή.
+
+## [1.0.0] - 2026-03-20
+### 🧱 The CLI Foundation | Θεμελίωση CLI
+- **[EN] Static Analysis:** First stable version of the pattern-matching detection engine.
+- **[EL] Στατική Ανάλυση:** Πρώτη σταθερή έκδοση της μηχανής ανίχνευσης βάσει patterns.
+- **[EN] Local LLM Testing:** Hardened through extensive testing using local Proxmox-hosted LLMs.
+- **[EL] Local LLM Testing:** Θωράκιση μέσω εκτεταμένων δοκιμών σε local LLMs (Proxmox server).
+
+## [0.1.0] - 2026-03-05
+### ⚡ The Spark | Η Σπίθα (Concept Prototype)
+- **[EN] Initial Prototype:** Concept script born from "technical gaslighting" observations.
+- **[EL] Πρωτότυπο:** Αρχικό script που γεννήθηκε από την ανάγκη ξεσκεπάσματος της "ψηφιακής παπατζιάς".
+- **[EN] Boilerplate Fingerprinting:** Initial discovery of AI's obsession with enterprise-style boilerplate.
+- **[EL] Boilerplate Fingerprinting:** Εντοπισμός της εμμονής της AI με τον enterprise-style boilerplate κώδικα.
 
 ---
 *Papatzis Spotter — Evolution of Objectivity.*
