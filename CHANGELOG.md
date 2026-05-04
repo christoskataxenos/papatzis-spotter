@@ -5,10 +5,10 @@
 ---
 
 <a name="english-version"></a>
-## 🇬🇧 English Version
+## English Version
 
 ### [3.8.0] - 2026-05-04
-#### 📝 Documentation & Forensic Overhaul
+#### Documentation & Forensic Overhaul
 - **Bilingual Support:** Full documentation available in both English and Greek.
 - **Papatzis Manifesto:** Integrated the project's core philosophy and origin story.
 - **Visual Forensic Guide:** Added new screenshots and side-by-side code comparisons.
@@ -16,42 +16,42 @@
 - **Multithreaded Performance:** Backend scaling across CPU cores for faster local analysis.
 - **Project Hardening:** Major cleanup of the repository root and archiving historical notes.
 
-### [3.5.0] - 2026-05-02
-#### 🚀 Orchestrator & UI Evolution
+### [3.5.0] - 2026-05-01
+#### Orchestrator & UI Evolution
 - **Diagnostic Center:** New Laboratory section for automated testing and validation.
 - **Aegean Day Theme:** High-contrast light mode for better accessibility.
 - **Forensic Scoring:** Implemented exponential weighting (severity^1.4) for more accurate detection.
 
 ### [3.0.0] - 2026-04-25
-#### 🧬 The Engine Rebirth (V3)
+#### The Engine Rebirth (V3)
 - **Tauri Migration:** Transition from PyQt6 to Tauri for superior UI/UX flexibility and visualization.
 - **Jaccard Similarity:** Pairwise block comparison to detect "Robotic Uniformity."
 - **Entropy Analysis:** Shannon Entropy measurements to identify predictable AI output.
 - **Embedded Engine:** 100% offline embedded sidecar architecture.
 
 ### [2.0.0] - 2026-04-10
-#### 🖥️ The GUI Era (PyQt6)
+#### The GUI Era (PyQt6)
 - **PyQt6 GUI:** First graphical interface version, moving away from the terminal.
 - **Radar Visualization:** Introduction of radar charts for visual slop diagnostics.
 - **Batch Processing:** Capability to scan entire directories and generate aggregated reports.
 
 ### [1.0.0] - 2026-03-20
-#### 🧱 The CLI Foundation
+#### The CLI Foundation
 - **Static Analysis:** First stable version of the pattern-matching detection engine.
 - **Local LLM Testing:** Hardened through extensive testing using local Proxmox-hosted LLMs.
 
 ### [0.1.0] - 2026-03-05
-#### ⚡ The Spark (Prototype)
+#### The Spark (Prototype)
 - **Initial Prototype:** Concept script born from "technical gaslighting" observations.
 - **Boilerplate Fingerprinting:** Discovery of AI's obsession with enterprise-style boilerplate.
 
 ---
 
 <a name="ελληνική-έκδοση"></a>
-## 🇬🇷 Ελληνική Έκδοση
+## Ελληνική Έκδοση
 
 ### [3.8.0] - 2026-05-04
-#### 📝 Αναβάθμιση Documentation & Ιατροδικαστικής
+#### Αναβάθμιση Documentation & Ιατροδικαστικής
 - **Δίγλωσση Υποστήριξη:** Πλήρης τεκμηρίωση σε Αγγλικά και Ελληνικά.
 - **Papatzis Manifesto:** Ενσωμάτωση της φιλοσοφίας και της ιστορίας γέννησης του project.
 - **Οπτικός Οδηγός:** Νέα screenshots και συγκρίσεις κώδικα (AI Slop vs. Human Logic).
@@ -59,32 +59,32 @@
 - **Ταχύτητα Multithreading:** Αξιοποίηση όλων των πυρήνων του επεξεργαστή για ταχύτατη τοπική ανάλυση.
 - **Καθαρισμός Project:** Νοικοκύρεμα του κεντρικού φακέλου και αρχειοθέτηση παλαιότερων σημειώσεων.
 
-### [3.5.0] - 2026-05-02
-#### 🚀 Εξέλιξη Orchestrator & UI
+### [3.5.0] - 2026-05-01
+#### Εξέλιξη Orchestrator & UI
 - **Διαγνωστικό Κέντρο:** Νέα ενότητα Laboratory για αυτοματοποιημένα unit tests και batch validation.
 - **Aegean Day Theme:** Light mode υψηλής αντίθεσης για καλύτερη ορατότητα.
 - **Forensic Scoring:** Νέος αλγόριθμος βαθμολόγησης (severity^1.4) για ακριβέστερο εντοπισμό μοτίβων AI.
 
 ### [3.0.0] - 2026-04-25
-#### 🧬 Η Αναγέννηση της Μηχανής V3
+#### Η Αναγέννηση της Μηχανής V3
 - **Μετάβαση σε Tauri:** Μεταφορά από PyQt6 σε Tauri για μεγαλύτερη ευελιξία κινήσεων και προηγμένα γραφικά.
 - **Jaccard Similarity:** Συγκριτική ανάλυση blocks για τον εντοπισμό "Ρομποτικής Ομοιομορφίας".
 - **Entropy Analysis:** Μέτρηση εντροπίας Shannon για τον εντοπισμό προβλέψιμου κώδικα AI.
 - **Embedded Engine:** Πλήρως offline αρχιτεκτονική (embedded sidecar).
 
 ### [2.0.0] - 2026-04-10
-#### 🖥️ Η Εποχή του UI (PyQt6)
+#### Η Εποχή του UI (PyQt6)
 - **PyQt6 GUI:** Η πρώτη έκδοση με γραφικό περιβάλλον (PyQt6), αφήνοντας πίσω το terminal.
 - **Radar Visualization:** Εισαγωγή radar charts για οπτική διάγνωση του slop.
-- **Μαζική Σάρωση:** Δυνατότητα ελέγχου ολόκληρων φακέλων και έκδοσης συγκεντρωτικών reports.
+- **Μαζική Σάρωση:** Δυνατότητα ελέγχου ολόκληρων φακέλων και έκδοσης συγκεντρτικών reports.
 
 ### [1.0.0] - 2026-03-20
-#### 🧱 Θεμελίωση CLI
+#### Θεμελίωση CLI
 - **Στατική Ανάλυση:** Πρώτη σταθερή έκδοση της μηχανής ανίχνευσης βάσει patterns.
 - **Local LLM Testing:** Θωράκιση μέσω εκτεταμένων δοκιμών σε local LLMs (Proxmox server).
 
 ### [0.1.0] - 2026-03-05
-#### ⚡ Η Σπίθα (Πρωτότυπο)
+#### Η Σπίθα (Πρωτότυπο)
 - **Πρωτότυπο:** Αρχικό script που γεννήθηκε από την ανάγκη ξεσκεπάσματος της "ψηφιακής παπατζιάς".
 - **Boilerplate Fingerprinting:** Εντοπισμός της εμμονής της AI με τον enterprise-style boilerplate κώδικα.
 
