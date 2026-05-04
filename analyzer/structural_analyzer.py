@@ -220,7 +220,7 @@ class StructuralAnalyzer(BaseAnalyzer):
         assignments = node_counts.get("assignment", 0) or node_counts.get("expression_statement", 0)
         loops = node_counts.get("for_statement", 0) + node_counts.get("while_statement", 0)
         
-        if loops > 0 and (assignments / loops) > 12:
+        if loops > 0 and (assignments / loops) > 20 and assignments > 30:
             from analyzer.i18n import translate
             t_data = translate("structural.high_assignment_ratio", ui_lang=self.ui_lang)
             self.findings.append(Finding(

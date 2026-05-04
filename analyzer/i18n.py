@@ -222,6 +222,31 @@ TRANSLATIONS = {
             "human_alternative": "",
             "rationale": "Βαριά χρήση AI με τυπικά enterprise patterns και ρομποτική δομή."
         },
+        "logic.expensive_loop": {
+            "message": "Expensive Function Call in Loop: {call_name}",
+            "human_alternative": "Αφαίρεσε το {call_name} από τον βρόχο επανάληψης.",
+            "rationale": "Η κλήση δαπανηρών συναρτήσεων (όπως deepcopy ή network requests) μέσα σε βρόχους είναι κλασικό anti-pattern απόδοσης."
+        },
+        "logic.list_concat": {
+            "message": "List Concatenation σε Loop (Το O(N²) Έγκλημα)",
+            "human_alternative": "Χρησιμοποίησε τη μέθοδο .append() αντί για + [item].",
+            "rationale": "Η πρόσθεση λιστών δημιουργεί νέο αντικείμενο κάθε φορά, οδηγώντας σε τετραγωνική αύξηση της μνήμης."
+        },
+        "logic.redundant_cast": {
+            "message": "Redundant Type Casting: {cast_type}()",
+            "human_alternative": "Αφαίρεσε το αχρείαστο casting αν η μεταβλητή είναι ήδη του σωστού τύπου.",
+            "rationale": "Τα LLMs κάνουν συχνά casting 'για σιγουριά' μέσα σε loops, σπαταλώντας πόρους."
+        },
+        "structural.hadouken": {
+            "message": "Hadouken Code (Βαθύ Nesting: {depth} επίπεδα)",
+            "human_alternative": "Κάνε refactor. Χρησιμοποίησε early returns (Guard Clauses) για να μειώσεις το βάθος.",
+            "rationale": "Το υπερβολικό βάθος (άνω του 3) δείχνει ότι το AI δεν μπορεί να οργανώσει τη λογική γραμμικά (The Arrow of Code)."
+        },
+        "structural.god_function": {
+            "message": "God Function: Μονολιθική Συνάρτηση ({statements} statements)",
+            "human_alternative": "Σπάσε τη συνάρτηση σε μικρότερα, αυτόνομα κομμάτια.",
+            "rationale": "Τα LLMs συχνά παράγουν συναρτήσεις-τέρατα γιατί χάνουν την ικανότητα abstraction σε μακροσκελή prompts."
+        },
         "scoring.amateur_slop": {
             "message": "Ερασιτέχνης (100% Slop)",
             "human_alternative": "",
@@ -448,6 +473,31 @@ TRANSLATIONS = {
             "message": "Professional Papatzis",
             "human_alternative": "",
             "rationale": "Heavy AI usage with typical enterprise patterns and robotic structure."
+        },
+        "logic.expensive_loop": {
+            "message": "Expensive Function Call in Loop: {call_name}",
+            "human_alternative": "Remove the {call_name} call from the loop.",
+            "rationale": "Calling expensive functions (like deepcopy or network requests) inside loops is a classic performance anti-pattern."
+        },
+        "logic.list_concat": {
+            "message": "List Concatenation in Loop (The O(N²) Crime)",
+            "human_alternative": "Use the .append() method instead of + [item].",
+            "rationale": "Adding lists creates a new object each time, leading to quadratic memory growth."
+        },
+        "logic.redundant_cast": {
+            "message": "Redundant Type Casting: {cast_type}()",
+            "human_alternative": "Remove unnecessary casting if the variable is already of the correct type.",
+            "rationale": "LLMs often cast 'just to be sure' inside loops, wasting resources."
+        },
+        "structural.hadouken": {
+            "message": "Hadouken Code (Deep Nesting: {depth} levels)",
+            "human_alternative": "Refactor the code. Use early returns (Guard Clauses) to reduce depth.",
+            "rationale": "Excessive depth (>3) shows the AI cannot organize logic linearly (The Arrow of Code)."
+        },
+        "structural.god_function": {
+            "message": "God Function: Monolithic Function ({statements} statements)",
+            "human_alternative": "Break the function into smaller, autonomous components.",
+            "rationale": "LLMs often produce monster-functions because they lose the ability to abstract in long prompts."
         },
         "scoring.amateur_slop": {
             "message": "Amateur (100% Slop)",

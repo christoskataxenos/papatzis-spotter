@@ -6,6 +6,8 @@ import webbrowser
 import re
 import shutil
 import multiprocessing
+import json
+import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QTabWidget, QTextEdit, QLabel, QSystemTrayIcon, 
@@ -62,6 +64,7 @@ class PapatzisLauncher(QMainWindow):
         self.log_emitter.log_received.connect(self.append_log)
         self.running_procs = {}
         self.is_auto_building_analyzer = False
+        self.auto_launch_after_build = False
         
         self.setup_ui()
         self.setup_tray()
@@ -564,6 +567,46 @@ fi
     def run_all(self):
         self.btn_launch.setEnabled(False)
         self.btn_stop.setEnabled(True)
+        
+        # 1. Check for npm dependencies
+        if not os.path.exists(os.path.join(project_root, "node_modules")):
+            self.append_log("npm", "<b>[SYSTEM] node_modules missing. Running 'npm install'...</b>\n")
+            p = QProcess(self)
+            p.setWorkingDirectory(project_root)
+            p.setProcessChannelMode(QProcess.MergedChannels)
+            p.readyRead.connect(lambda: self.stream_logs(p, "npm"))
+            p.start("cmd", ["/c", "npm install"])
+            p.finished.connect(lambda code: self.check_analyzer_rebuild() if code == 0 else self.append_log("npm", "[ERROR] npm install failed.\n"))
+            self.running_procs["npm_install"] = p
+        else:
+            self.check_analyzer_rebuild()
+
+    def check_analyzer_rebuild(self):
+        # 2. Check if analyzer source is newer than binary
+        tauri_sidecar = os.path.join(project_root, "src-tauri", "binaries", "slop-engine-x86_64-pc-windows-msvc.exe")
+        needs_rebuild = False
+        
+        if os.path.exists(tauri_sidecar):
+            bin_mtime = os.path.getmtime(tauri_sidecar)
+            # Check all .py files in analyzer/
+            for root, _, files in os.walk(analyzer_dir):
+                for f in files:
+                    if f.endswith(".py"):
+                        if os.path.getmtime(os.path.join(root, f)) > bin_mtime:
+                            needs_rebuild = True
+                            break
+                if needs_rebuild: break
+        else:
+            needs_rebuild = True
+
+        if needs_rebuild:
+            self.append_log("build", "<b>[AUTO] Ανιχνεύτηκαν αλλαγές στον Analyzer ή λείπει το binary. Έναρξη rebuilding...</b>\n")
+            self.auto_launch_after_build = True
+            self.build_analyzer()
+        else:
+            self.start_tauri_dev()
+
+    def start_tauri_dev(self):
         self.lbl_main_status.setText("Orchestrator Running")
         
         # Εκκίνηση Tauri
@@ -648,6 +691,15 @@ fi
         """Χτίζει το εκτελέσιμο του Papatzis Engine (CLI)"""
         self.tabs.setCurrentIndex(2)
         self.append_log("build", "<b>[BUILD] Έναρξη δημιουργίας Papatzis Engine...</b>\n")
+
+        # Create build info file to verify deployment
+        try:
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(os.path.join(analyzer_dir, "build_info.json"), "w") as f:
+                json.dump({"timestamp": now_str}, f)
+            self.append_log("build", f"[SYSTEM] Build timestamp: {now_str}\n")
+        except Exception as e:
+            self.append_log("build", f"[WARNING] Failed to create build_info.json: {e}\n")
 
         # Χρησιμοποιούμε το spec file από το project root
         spec_file = os.path.join(project_root, "PapatzisEngine.spec")
@@ -788,7 +840,12 @@ fi
                     tauri_sidecar = os.path.join(tauri_bin_dir, "slop-engine-x86_64-pc-windows-msvc.exe")
                     shutil.copy2(exe_path, tauri_sidecar)
                     self.append_log("build", "<b>[SYNC] Ο Engine ενημερώθηκε στον φάκελο του Tauri!</b>\n")
-                    self.append_log("build", "<i>Σημείωση: Κάντε επανεκκίνηση (Stop & Launch) για να εφαρμοστούν οι αλλαγές στο GUI.</i>\n")
+                    
+                    # Force Rust re-compile by touching lib.rs
+                    lib_rs = os.path.join(project_root, "src-tauri", "src", "lib.rs")
+                    if os.path.exists(lib_rs):
+                        os.utime(lib_rs, None)
+                        self.append_log("build", "[SYSTEM] Force-touching lib.rs for Rust re-compile.\n")
             
             except Exception as e:
                 self.append_log("build", f"[ERROR] Αδυναμία αντιγραφής: {e}\n")
@@ -806,6 +863,16 @@ fi
                 self.build_release()
             else:
                 self.append_log("build", "\n[AUTO] Το release build σταμάτησε λόγω αποτυχίας του Engine.\n")
+        
+        if name == "Engine" and self.auto_launch_after_build:
+            self.auto_launch_after_build = False
+            if os.path.exists(exe_path):
+                self.append_log("build", "\n[AUTO] Rebuild επιτυχές. Εκκίνηση Project...\n")
+                self.start_tauri_dev()
+            else:
+                self.append_log("build", "\n[AUTO] Η εκκίνηση ακυρώθηκε λόγω σφάλματος στο build του Engine.\n")
+                self.btn_launch.setEnabled(True)
+                self.btn_stop.setEnabled(False)
 
     # --- TESTING ACTIONS ---
     def run_diagnostic_tests(self):

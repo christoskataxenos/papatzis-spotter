@@ -29,8 +29,13 @@ class NamingAnalyzer(BaseAnalyzer):
         self.naming_query = Query(self.lang, query_str)
         # Safe list to avoid false positives
         self.safe_names = {"list", "int", "str", "dict", "set", "tuple", "float", "bool", "len", "sum", "min", "max", "range", "enumerate", "zip", "map", "filter"}
+        if language_id.lower() == "c":
+            # Ensure all are lowercase for case-insensitive matching
+            c_safe = {"id", "ptr", "temp", "temp_val", "exectime", "cputime", "nextid", "curr", "prev", "new_node", "new_process", "value", "val", "node", "data", "root", "left", "right", "current"}
+            self.safe_names.update(c_safe)
+        
         if template_identifiers:
-            self.safe_names.update(template_identifiers)
+            self.safe_names.update({name.lower() for name in template_identifiers})
 
     def analyze(self, tree: Tree, source_code: bytes, file_path: str) -> List[Finding]:
         self.clear()
@@ -69,7 +74,8 @@ class NamingAnalyzer(BaseAnalyzer):
                 name = node.text.decode('utf8', errors='ignore')
                 line = node.start_point[0] + 1
             
-                if name in self.safe_names or len(name) < 2:
+                name_lower = name.lower()
+                if name_lower in self.safe_names or len(name) < 2:
                     continue
                 
                 # --- Detection Logic ---
@@ -114,9 +120,11 @@ class NamingAnalyzer(BaseAnalyzer):
                             **t_data
                         ))
 
-                # 3. CamelCase Detection in C (Phase 2.4)
-                if self.language == "c":
-                    if re.search(r'[a-z][A-Z]', name) and not name.isupper():
+                if self.language.lower() == "c":
+                    # Whitelist Windows/Standard APIs (SetConsole, GetProcess, etc)
+                    # Support common prefixes and specifically Windows API naming style
+                    is_api_call = re.match(r'^(Set|Get|Create|Close|Post|Send|Write|Read|Is|Virtual|Heap|Global|Local|Window|Console|Process|Thread|Registry|Event|Mutex|Semaphore|File)[A-Z]', name)
+                    if not is_api_call and re.search(r'[a-z][A-Z]', name) and not name.isupper():
                         fid = ("naming.camel_case_slop", line, name)
                         if fid not in seen_findings:
                             seen_findings.add(fid)

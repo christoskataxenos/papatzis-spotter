@@ -29,6 +29,8 @@ class IntegrityAnalyzer(BaseAnalyzer):
                 (type_definition declarator: (type_identifier) @id)
                 (declaration declarator: (identifier) @id)
                 (declaration declarator: (pointer_declarator (identifier) @id))
+                (declaration declarator: (init_declarator declarator: (identifier) @id))
+                (declaration declarator: (init_declarator declarator: (pointer_declarator (identifier) @id)))
                 (preproc_include path: (string_literal) @id)
             """
         

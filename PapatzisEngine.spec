@@ -4,7 +4,7 @@ a = Analysis(
     ['analyzer/slop_engine.py'],
     pathex=['.'],
     binaries=[],
-    datas=[],
+    datas=[('analyzer/build_info.json', '.')],
     hiddenimports=[
         'tree_sitter', 
         'tree_sitter_language_pack', 
