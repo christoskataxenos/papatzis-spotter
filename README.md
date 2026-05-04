@@ -133,7 +133,7 @@ Requires Python 3.10+. Simply run:
 ```bash
 ./scripts/run_orchestrator.sh
 ```
-*(Debian .deb and RPM packages coming soon)*
+*(Debian .deb and RPM packages supported via Orchestrator + Docker)*
 
 [📥 Download Latest Stable](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
 

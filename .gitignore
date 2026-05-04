@@ -67,6 +67,10 @@ my-skills/
 releases/
 *.exe
 *.msi
+*.deb
+*.rpm
+analyzer-dist-linux/
+analyzer/build_info.json
 Papatzis-Portable/
 AiSlop-Portable/
 
