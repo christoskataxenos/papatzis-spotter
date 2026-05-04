@@ -15,7 +15,7 @@
 - **Dynamic Permissions:** Implemented automatic executable permission setting for Linux binaries at runtime.
 - **Ultra-Fast Builds:** Reduced Linux build time from 15 minutes to under 2 minutes using persistent cache.
 
-### [3.8.0] - 2026-05-04
+### [3.8.0] - 2026-05-03
 #### Documentation & Forensic Overhaul
 - **Bilingual Support:** Full documentation available in both English and Greek.
 - **Papatzis Manifesto:** Integrated the project's core philosophy and origin story.
@@ -66,7 +66,7 @@
 - **Dynamic Permissions:** Αυτόματη ρύθμιση δικαιωμάτων εκτέλεσης (chmod +x) στα Linux binaries κατά το runtime.
 - **Ultra-Fast Builds:** Μείωση χρόνου build για Linux από 15 λεπτά σε λιγότερο από 2 λεπτά μέσω persistent caching.
 
-### [3.8.0] - 2026-05-04
+### [3.8.0] - 2026-05-03
 #### Αναβάθμιση Documentation & Ιατροδικαστικής
 - **Δίγλωσση Υποστήριξη:** Πλήρης τεκμηρίωση σε Αγγλικά και Ελληνικά.
 - **Papatzis Manifesto:** Ενσωμάτωση της φιλοσοφίας και της ιστορίας γέννησης του project.
