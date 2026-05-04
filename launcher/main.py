@@ -928,33 +928,85 @@ fi
 
             # 3. Build Tauri Linux
             self.progress.setValue(50)
-            self.lbl_main_status.setText("Building Linux App (Tauri)...")
-            self.append_log("build", "[LINUX] Building Tauri App (.deb, .rpm) via Docker... (Εγκατάσταση εξαρτήσεων & Compilation)\n")
+            self.lbl_main_status.setText("Checking Builder Image...")
+            self.append_log("build", "[SYSTEM] Checking for persistent Linux builder image...\n")
             
-            tauri_cmd = [
-                "docker", "run", "--rm",
-                "-v", f"{project_root}:/app",
-                "-w", "/app",
-                "node:20-bookworm",
-                "bash", "-c",
-                "apt-get update && apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libnm-dev libpango1.0-dev libappindicator3-dev fakeroot rpm curl build-essential && " +
-                "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && " +
-                "source $HOME/.cargo/env && " +
-                "npm install && npm run tauri build"
-            ]
+            p_check = QProcess(self)
+            p_check.start("docker", ["images", "-q", "papatzis-builder-v2"])
             
-            p_tauri = QProcess(self)
-            p_tauri.setProcessChannelMode(QProcess.MergedChannels)
-            p_tauri.readyRead.connect(lambda: self.stream_logs(p_tauri, "build"))
-            p_tauri.finished.connect(self._on_linux_tauri_finished)
-            self.append_log("build", "[SYSTEM] Executing Linux Tauri Build (Docker)...\n")
-            p_tauri.start(tauri_cmd[0], tauri_cmd[1:])
-            self.running_procs["linux_tauri"] = p_tauri
+            def on_check_done(code):
+                img_id = p_check.readAll().data().decode().strip()
+                if img_id:
+                    self.append_log("build", "[OK] Persistent builder image found. Starting build...\n")
+                    self._start_linux_tauri_build()
+                else:
+                    self.append_log("build", "[INFO] Builder image not found. Creating it now (this takes ~10 mins but only happens once)...\n")
+                    self._create_linux_builder_image()
+            
+            p_check.finished.connect(on_check_done)
 
         p_engine.finished.connect(on_engine_linux_done)
         self.append_log("build", f"[SYSTEM] Executing: {' '.join(engine_cmd)}\n")
         p_engine.start(engine_cmd[0], engine_cmd[1:])
         self.running_procs["linux_engine"] = p_engine
+
+    def _create_linux_builder_image(self):
+        """Creates a Docker image with all Tauri dependencies pre-installed."""
+        dockerfile_content = """FROM node:20-bookworm
+RUN apt-get update && apt-get install -y \
+    libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev libnm-dev libpango1.0-dev \
+    libappindicator3-dev librsvg2-dev libssl-dev pkg-config fakeroot rpm curl build-essential
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+"""
+        dockerfile_path = os.path.join(project_root, "Dockerfile.linux")
+        try:
+            with open(dockerfile_path, "w") as f:
+                f.write(dockerfile_content)
+        except Exception as e:
+            self.append_log("build", f"[ERROR] Failed to create Dockerfile: {e}\n")
+            return
+
+        p_build = QProcess(self)
+        p_build.setProcessChannelMode(QProcess.MergedChannels)
+        p_build.readyRead.connect(lambda: self.stream_logs(p_build, "build"))
+        p_build.setWorkingDirectory(project_root)
+        
+        def on_build_done(exit_code):
+            if exit_code == 0:
+                self.append_log("build", "[OK] Builder image created successfully.\n")
+                self._start_linux_tauri_build()
+            else:
+                self.append_log("build", "[ERROR] Failed to create builder image.\n")
+            
+            if os.path.exists(dockerfile_path):
+                try: os.remove(dockerfile_path)
+                except: pass
+
+        p_build.finished.connect(on_build_done)
+        p_build.start("docker", ["build", "-t", "papatzis-builder-v2", "-f", "Dockerfile.linux", "."])
+        self.running_procs["linux_builder_image"] = p_build
+
+    def _start_linux_tauri_build(self):
+        self.progress.setValue(70)
+        self.lbl_main_status.setText("Building Linux App (Tauri)...")
+        self.append_log("build", "[LINUX] Building Tauri App (.deb, .rpm) via persistent image...\n")
+        
+        tauri_cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{project_root}:/app",
+            "-w", "/app",
+            "papatzis-builder-v2",
+            "bash", "-c", "npm install && npm run tauri build"
+        ]
+        
+        p_tauri = QProcess(self)
+        p_tauri.setProcessChannelMode(QProcess.MergedChannels)
+        p_tauri.readyRead.connect(lambda: self.stream_logs(p_tauri, "build"))
+        p_tauri.finished.connect(self._on_linux_tauri_finished)
+        self.append_log("build", f"[SYSTEM] Executing Linux Tauri Build (Docker)...\n")
+        p_tauri.start(tauri_cmd[0], tauri_cmd[1:])
+        self.running_procs["linux_tauri"] = p_tauri
 
     def _on_linux_tauri_finished(self, exit_code: int):
         if exit_code != 0:

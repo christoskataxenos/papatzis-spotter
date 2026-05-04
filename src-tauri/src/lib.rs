@@ -31,20 +31,34 @@ struct SlopRequest {
 #[cfg(target_os = "windows")]
 const SIDECAR_BYTES: &[u8] = include_bytes!("../binaries/slop-engine-x86_64-pc-windows-msvc.exe");
 
-#[cfg(target_os = "windows")]
+#[cfg(target_os = "linux")]
+const SIDECAR_BYTES: &[u8] = include_bytes!("../binaries/slop-engine-x86_64-unknown-linux-gnu");
+
 fn extract_sidecar() -> Result<PathBuf, String> {
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    return Err("Platform not supported for the embedded sidecar.".to_string());
+
     let mut path = env::temp_dir();
+    
+    #[cfg(target_os = "windows")]
     path.push("papatzis_engine_v3.8.0_embedded.exe");
     
-    // Always overwrite — ensures the latest engine is used after rebuilds
+    #[cfg(target_os = "linux")]
+    path.push("papatzis_engine_v3.8.0_embedded");
+    
     fs::write(&path, SIDECAR_BYTES).map_err(|e| format!("Failed to extract engine: {}", e))?;
     
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(metadata) = fs::metadata(&path) {
+            let mut perms = metadata.permissions();
+            perms.set_mode(0o755);
+            let _ = fs::set_permissions(&path, perms);
+        }
+    }
+    
     Ok(path)
-}
-
-#[cfg(not(target_os = "windows"))]
-fn extract_sidecar() -> Result<PathBuf, String> {
-    Err("Only Windows is supported for the embedded sidecar.".to_string())
 }
 
 #[tauri::command]

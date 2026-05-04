@@ -7,6 +7,14 @@
 <a name="english-version"></a>
 ## English Version
 
+### [3.9.0] - 2026-05-04
+#### Linux Distribution & Docker Optimization
+- **Tauri v2 Compatibility:** Full support for Tauri v2 system dependencies on Linux (WebKitGTK 4.1 & libsoup 3.0).
+- **Builder Evolution:** Upgraded persistent Docker builder image to `papatzis-builder-v2` with modern Linux headers.
+- **Linux Native Support:** Enabled embedded sidecar extraction and execution for Linux environments.
+- **Dynamic Permissions:** Implemented automatic executable permission setting for Linux binaries at runtime.
+- **Ultra-Fast Builds:** Reduced Linux build time from 15 minutes to under 2 minutes using persistent cache.
+
 ### [3.8.0] - 2026-05-04
 #### Documentation & Forensic Overhaul
 - **Bilingual Support:** Full documentation available in both English and Greek.
@@ -49,6 +57,14 @@
 
 <a name="ελληνική-έκδοση"></a>
 ## Ελληνική Έκδοση
+
+### [3.9.0] - 2026-05-04
+#### Linux Distribution & Docker Optimization
+- **Tauri v2 Compatibility:** Πλήρης συμβατότητα με Tauri v2 system libraries (WebKitGTK 4.1 & libsoup 3.0).
+- **Builder Evolution:** Αναβάθμιση του persistent Docker image σε `papatzis-builder-v2` για απροβλημάτιστο compilation.
+- **Linux Native Support:** Υποστήριξη για extraction και εκτέλεση της μηχανής Papatzis σε Linux.
+- **Dynamic Permissions:** Αυτόματη ρύθμιση δικαιωμάτων εκτέλεσης (chmod +x) στα Linux binaries κατά το runtime.
+- **Ultra-Fast Builds:** Μείωση χρόνου build για Linux από 15 λεπτά σε λιγότερο από 2 λεπτά μέσω persistent caching.
 
 ### [3.8.0] - 2026-05-04
 #### Αναβάθμιση Documentation & Ιατροδικαστικής

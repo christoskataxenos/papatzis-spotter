@@ -80,3 +80,7 @@ analyzer/scratch/
 project-report.txt
 *.log
 *.tmp
+
+# --- Planning ---
+V4-Plan.md
+implementation_plan.md.resolved

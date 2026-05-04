@@ -1,13 +1,13 @@
 # Papatzis Spotter
 ## Η Offline Μηχανή Ανίχνευσης AI-Slop
 
-[![](https://img.shields.io/badge/version-3.5.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
+[![](https://img.shields.io/badge/version-3.9.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9)
 [![](https://img.shields.io/badge/license-MIT-333333?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/badge/python-3.10%2B-2F5C8F?style=for-the-badge)](https://python.org)
 
 ---
 
-### [ 🌐 English Version ](README.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 Πλήρες Changelog ](CHANGELOG.md)
+### [ 🌐 English Version ](README.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9) | [ 📜 Πλήρες Changelog ](CHANGELOG.md)
 
 ---
 
@@ -132,9 +132,9 @@ result = clean_text(" hello ")
 ```bash
 ./scripts/run_orchestrator.sh
 ```
-*(Σύντομα διαθέσιμα .deb και .rpm πακέτα)*
+*(Υποστήριξη πακέτων .deb και .rpm μέσω Orchestrator + Docker)*
 
-[📥 Κατεβάστε την τελευταία έκδοση](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
+[📥 Κατεβάστε την τελευταία έκδοση](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9)
 
 [⬆ Πίσω στην κορυφή](#papatzis-spotter)
 

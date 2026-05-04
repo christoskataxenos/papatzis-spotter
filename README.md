@@ -1,14 +1,14 @@
 # Papatzis Spotter
 ## The Offline AI-Slop Detection Engine
 
-[![](https://img.shields.io/badge/version-3.5.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
+[![](https://img.shields.io/badge/version-3.9.0-2F5C8F?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9)
 [![](https://img.shields.io/badge/license-MIT-333333?style=for-the-badge)](LICENSE)
 [![](https://img.shields.io/badge/python-3.10%2B-2F5C8F?style=for-the-badge)](https://python.org)
 [![](https://img.shields.io/badge/platform-windows%20%7C%20linux-333333?style=for-the-badge)](https://github.com/christoskataxenos/papatzis-spotter)
 
 ---
 
-### [ 🌐 Ελληνική Έκδοση ](README_GR.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 Full Changelog ](CHANGELOG.md)
+### [ 🌐 Ελληνική Έκδοση ](README_GR.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9) | [ 📜 Full Changelog ](CHANGELOG.md)
 
 ---
 
@@ -135,7 +135,7 @@ Requires Python 3.10+. Simply run:
 ```
 *(Debian .deb and RPM packages supported via Orchestrator + Docker)*
 
-[📥 Download Latest Stable](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
+[📥 Download Latest Stable](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.9)
 
 [⬆ Back to top](#papatzis-spotter)
 
