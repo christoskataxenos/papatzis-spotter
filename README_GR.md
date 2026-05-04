@@ -7,7 +7,7 @@
 
 ---
 
-### [ 🌐 English Version ](README.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 V3 Changelog ](CHANGELOG_V3.md)
+### [ 🌐 English Version ](README.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 Πλήρες Changelog ](CHANGELOG.md)
 
 ---
 
@@ -124,11 +124,14 @@ result = clean_text(" hello ")
 ### Windows (Αυτοματοποιημένα)
 Απλά τρέξτε το script:
 ```powershell
-./run_orchestrator.bat
+./scripts/run_orchestrator.bat
 ```
 
-### Linux / Manual
-Απαιτείται Python 3.10+.
+### Linux / macOS
+Απαιτείται Python 3.10+. Απλά τρέξτε:
+```bash
+./scripts/run_orchestrator.sh
+```
 *(Σύντομα διαθέσιμα .deb και .rpm πακέτα)*
 
 [📥 Κατεβάστε την τελευταία έκδοση](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)

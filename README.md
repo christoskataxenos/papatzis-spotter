@@ -8,7 +8,7 @@
 
 ---
 
-### [ 🌐 Ελληνική Έκδοση ](README_GR.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 V3 Changelog ](CHANGELOG_V3.md)
+### [ 🌐 Ελληνική Έκδοση ](README_GR.md) | [ 📥 Download Stable ](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5) | [ 📜 Full Changelog ](CHANGELOG.md)
 
 ---
 
@@ -125,11 +125,14 @@ We analyze the "geometry" of the logic (AST). Even if you change variable names,
 ### Windows (Automated)
 Simply run the orchestrator script:
 ```powershell
-./run_orchestrator.bat
+./scripts/run_orchestrator.bat
 ```
 
-### Linux / Manual
-Requires Python 3.10+.
+### Linux / macOS
+Requires Python 3.10+. Simply run:
+```bash
+./scripts/run_orchestrator.sh
+```
 *(Debian .deb and RPM packages coming soon)*
 
 [📥 Download Latest Stable](https://github.com/christoskataxenos/papatzis-spotter/releases/tag/v3.5)
